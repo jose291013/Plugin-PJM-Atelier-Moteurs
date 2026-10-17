@@ -18,7 +18,9 @@ Before anything else, apply `moteurs-pjm-expert/references/consommation.md`: one
 5. Apply only the confirmed differences:
    - additions: `addOpts`, `addProd`, `addMat`, `supp`, new components;
    - modifications of a line (validated 17/10/2026): same endpoint with the existing line Id – material: `SaveComponentMaterial` with `Id = line Id`; production: `SaveComponentProduction` with `ComponentProductionId = line Id` (answers « correctement mise à jour », no duplicate). Resend every field of the line, not only the changed one;
-   - new choices on a forced option: re-check the `select_one_id` suppressions.
+   - new choices on a forced option: re-check the `select_one_id` suppressions;
+   - new production lines get their report position (`Seq`) from the convention; existing lines with a wrong `Seq` (e.g. all at 1) are listed as differences and fixed with `setSeq` after confirmation;
+   - new components: re-run `orderComponents` so the form keeps the logical order.
 6. Re-read the grids, update `pjm.map` and `pjm.builtAt` (ArtifactData `update`).
 7. Run all test cases, write `tests[].last`, report differences against `expected` and against the previous `last`.
 8. Set `status` to `cree` and summarize the changes made in PJM.

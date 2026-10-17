@@ -103,5 +103,42 @@ Engine fields: form of `/ProductEngines/Edit/{E}` (Name, ProductEngineTypeId = c
 
 Transfer to the Atelier without errors: build the whole sheet in the page (`window.SHEET`), show it in a `<pre>`, read it with `get_page_text`, rebuild it locally, then compare a SHA-256 fingerprint computed in the page and locally before writing with ArtifactData. Formulas longer than ~400 characters can stay in PJM (`"[PJM]"` in the sheet) to keep the sheet small.
 
+## Report position of production lines (Seq) and form order – validated 17/10/2026
+
+```js
+// position of a production line in the report (see « Conventions » in procedure-construction.md)
+function seqOf(name){ // name = WorkflowComponentName « Process (unit) »
+  if (/pré-?presse|fichier|CTP|plan(ch|que)/i.test(name)) return 1;
+  if (/pellic|lamin|vernis|actimail/i.test(name)) return 3;
+  if (/impres|couleur|N&B|quadri|recto|offset/i.test(name)) return 2;
+  if (/massicot|coupe|cortes|guillotin|découp|cut/i.test(name)) return 4;
+  if (/rain|hendid|perfor|coins/i.test(name)) return 5;
+  if (/pli|plis|plega|d[ií]ptic|tr[ií]ptic/i.test(name)) return 6;
+  if (/agraf|piq|reliure|dos carré|wire|spiral|cosedora|grapad/i.test(name)) return 7;
+  if (/oeillet|œillet|ourlet|fourreau|soudure|couture/i.test(name)) return 8;
+  return 9;
+} // keep only the families present: renumber 1..n in this order before saving
+// fix existing lines: resend every field with ComponentProductionId = line Id
+async function setSeq(ownerId, line, seq){
+  return H.post('/PECompWorkflows/SaveComponentProduction', {__RequestVerificationToken: H.token(), ComponentProductionId: line.Id,
+    ComponentId: ownerId, cid: ownerId, OptionId: ownerId, FromQty: line.QtyFrom, ToQty: line.QtyTo, WorkflowComponentId: line.WorkflowComponentId,
+    WorkflowComponentId_input: line.WorkflowComponentName, Seq: seq, Instructions: line.Instructions || '',
+    QuantityCalculation: line.QuantityCalculation || '', NumberUpExpression: line.NumberUpExpression || ''});
+}
+// form order (same call as PJM drag and drop); ids = every component id, in the wanted order
+async function orderComponents(ids){
+  const r = await fetch('/ProductEngines/UpdateCompSequence/', {method:'POST', headers:{'Content-Type':'application/json; charset=utf-8','X-Requested-With':'XMLHttpRequest'}, body: JSON.stringify({newSettings: ids})});
+  return r.text(); // {"message":"Success"}
+}
+```
+Use `H.token()` on a page that has a token, or read it from `H.form('/productengines/addoption/' + anyOptionCid)`.
+
 ## Running a test case
-Open the engine's Test page (button « Test » of the engine), fill the quantities and choices of the case with `form_input` / `find`, click « Calculer le plan de production », then read the total (HT) with `get_page_text`. The Test page shows every component (suppressions are not visible there) but the calculation respects them.
+Open the engine's Test page (button « Test » of the engine), fill the quantities and choices of the case, click « Calculer le plan de production », then read the total (HT) with `get_page_text`.
+Filling by script (validated 17/10/2026): each field is `#component-{componentId with _ instead of -}` (Kendo DropDownList; materials by Id, choices by text).
+```js
+function setC(cid, text, matId){ const e = document.getElementById('component-' + cid.replace(/-/g,'_')); const w = jQuery(e).data('kendoDropDownList');
+  const it = w.dataSource.data().find(x => matId ? x[w.options.dataValueField] === matId : (x[w.options.dataTextField]||'').trim() === text);
+  w.value(it[w.options.dataValueField]); w.trigger('change'); jQuery(e).trigger('change'); } // jQuery change = recompute hidden questions
+```
+Set Format / Grammage first, wait ~0.7 s between choices, then quantities (`kendoNumericTextBox` if present), then click the button (an `input`/`button` whose text is « Calculer le plan de production ») and wait ~5 s. Results: « Prix hors taxes » line, material blocks (`numberup`, `qty`) and equipment blocks (process / resource). The Test page shows every component (suppressions are not visible there) but the calculation respects them.

@@ -89,7 +89,7 @@ brouillon → pret (Prête à construire) → construction → cree (Créé dans
 - Procédés des ressources « Travail manuel » (ex. Renfort, Oeuillets) : la liste #ddlworkflowComponents contient d'abord l'entrée de la ressource puis le procédé ; prendre le procédé (ex. « Oeuillets (oeuillets) »), sinon l'enregistrement répond OK mais rien n'est créé. Toujours relire la grille après ajout.
 - La sortie de l'outil JavaScript est bloquée si elle contient « & » ou des motifs « x=y » : remplacer ces caractères avant de renvoyer du texte.
 - Le nom affiché d'un matériau peut différer de son nom catalogue (ex. « Couché Brillant 135 Gr » s'affiche « Papier supérieur blanc 135 Gr »).
-- L'ordre des composants dans le formulaire n'est pas l'ordre de création : à réordonner dans PJM.
+- L'ordre des composants dans le formulaire n'est pas l'ordre de création : le réordonner en fin de construction avec `UpdateCompSequence` (voir « Conventions »).
 - Le formulaire Test de PJM affiche tous les composants (les suppressions ne s'y voient pas), mais le calcul les respecte.
 - Session PJM expirée → l'utilisateur se reconnecte, Claude ne saisit jamais d'identifiants.
 
@@ -102,3 +102,55 @@ brouillon → pret (Prête à construire) → construction → cree (Créé dans
 100 ex. × 16 p. A4, Couché Mat 115, quadri RV, piqûre :
 - couverture identique : 400 feuilles 450×320, 104,98 € HT ;
 - couverture différente Brillant 250 g quadri recto + pelliculage mat : 300 feuilles intérieur + 100 couverture, 141,66 € HT.
+
+## Conventions de construction (validées le 17/10/2026, moteur « Flyer formats fermé+ perso »)
+
+### Position dans le rapport des étapes de production (champ `Seq`)
+Le champ `Seq` d'une ligne de production = colonne « position s… » = ordre de l'étape dans le rapport / la fiche de travail. Ne jamais laisser 1 partout : suivre l'ordre réel de l'atelier, identique dans tous les choix du moteur.
+| Position | Étapes |
+|---|---|
+| 1 | Pré-presse, vérification de fichiers, CTP / plaques |
+| 2 | Impression (numérique, offset, grand format) |
+| 3 | Pelliculage, lamination, vernis |
+| 4 | Massicot, coupe, découpe |
+| 5 | Rainage, perforation, coins arrondis |
+| 6 | Pliage |
+| 7 | Assemblage, piqûre, reliure, dos carré collé, wire-o |
+| 8 | Finitions grand format (œillets, ourlets, fourreaux, soudure) |
+| 9 | Conditionnement, emballage, expédition |
+- N'utiliser que les numéros des familles présentes dans le moteur, dans cet ordre (ex. flyer : impression 1, pelliculage 2, massicot 3, rainage 4, pliage 5).
+- Dans un même choix, deux étapes successives (ex. Rainage puis Pliage) gardent leur position de famille.
+- Montrer les positions dans le plan de construction ; les vérifier à chaque mise à jour.
+- Corriger une ligne existante : `SaveComponentProduction` avec `ComponentProductionId` = Id de la ligne et tous ses champs renvoyés (seul `Seq` change).
+
+### Ordre des questions du formulaire
+- Équivalent du glisser-déposer de PJM : POST JSON `/ProductEngines/UpdateCompSequence/` avec `{"newSettings":[id1, id2, …]}` (tous les composants, dans l'ordre voulu ; ids = `comp_{id}` des éléments `.component-list`). Réponse `{"message":"Success"}`.
+- Faire cet appel à la fin de chaque construction (et après ajout de composants lors d'une mise à jour), puis relire l'ordre.
+- Ordre logique : Quantité Q1 → Format → dimensions (Largeur, Hauteur) → Grammage / qualité → Papier → Impression → finitions (pelliculage, vernis) → pliage / façonnage → reliure → Délais de production. Les variantes dupliquées d'un même composant restent groupées.
+
+### Groupe de prix pour l'intégration
+- Ne pas le régler dans le moteur : PJM l'attribue automatiquement selon la société du devis. Ignorer `margin.pricingGroup` à la construction ; ne pas le signaler comme point à faire.
+- Pour les tests, garder le groupe proposé par la page Test et l'indiquer avec les prix.
+
+### CalcNup : fond perdu
+- Le 5e paramètre de `CalcNup(docW, docH, sheetW, sheetH, bleed)` est le fond perdu TOTAL (deux côtés) : 3 mm par côté → 6. Ex. `CalcNup(105,148,450,320,6)` = 8 A6 sur 450 × 320.
+- La fiche (`bleed`) est déjà ce total : la reporter telle quelle.
+
+### Masquer selon le papier choisi (suppression par matériau) – validé
+- Un composant Matériel peut servir de condition : `GetOptionValues` renvoie ses matériaux (StringId = Id du matériau).
+- Enregistrer avec `SuppressedComponentId` = composant Matériel, `Value` = Id du matériau, `SuppressedValueName` = nom du matériau, `MaterialId` = 000….
+- Ex. pelliculage masqué sur Couché 100 et 115 g : une suppression par matériau. Dans la fiche : `hideWhen` {component: id du composant matériel, value: nom du matériau}.
+
+### Formats fermés + format personnalisé
+- Option « Format » (A6, A5, A4…, Personnaliser) ; Largeur / Hauteur masquées sur les formats fermés et sur `select_one_id`.
+- Tout ce qui dépend du format (papier, impression, pelliculage, coupe) est dupliqué par format, avec ses poses en dur (`CalcNup(148,210,450,320,6)`) ou `Max(CalcNup(Q3,Q4,450,320,6), 0.0001)` pour le format personnalisé ; quantité `Ceiling(Q1 / Nup())`. La coupe peut être portée par les choix de « Format ».
+
+### Matériaux en double (même nom)
+- `matIds` peut trouver deux matériaux actifs au même nom. Prendre celui déjà utilisé par un autre moteur (lire les `"value":[…]` du multiselect `ddlMaterials` des composants Matériel), sinon le plus ancien (`CreateDate`), et le signaler à l'utilisateur.
+
+### Points techniques relevés
+- Composants : `POST /ProductEngines/SaveComponent` avec les champs du formulaire `/ProductEngines/{Quantity|Option|Material}/{E}` (fetch, sans navigation). L'id du nouveau composant = lien `ComponentEdit` absent avant l'appel. Composant Matériel : un champ `ddlMaterials` répété par matériau, `MaterialListingType` 0, `CalculationFormula`, `NumberUpExpression`.
+- « Forcer une sélection » : renvoyer le formulaire de `/ProductEngines/ComponentEdit/{cid}` avec `IsRequired=true`.
+- `saveoption` répond en HTML (redirection) mais crée bien le choix : vérifier avec la grille `/PEOptions/_Index?cid=`.
+- Moteur : « Sélectionnez la quantité » = champ `QuantityDefinition` (« Q1 ») du formulaire `/ProductEngines/Save`.
+- Page Test : les questions masquées sont recalculées sur l'événement jQuery `change` de l'élément `#component-{id avec _}` ; avec Kendo, appeler `w.value(v); w.trigger('change'); jQuery(e).trigger('change')`, attendre ~0,7 s entre deux choix, sinon « Required: Papier ».

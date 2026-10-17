@@ -27,12 +27,16 @@ Turn the sheet into a list of PJM objects:
 - Material and Calculation components;
 - the lead-time Options component (`delays`), one choice per lead time with its markup;
 - suppressions from `hideWhen`, `restrictions` (duplicate the target component: full / reduced version), validated `freeRules`, `guided` answers, plus the `select_one_id` rule for forced options;
-- weight formulas for materials sold by m² (see expert skill).
+- weight formulas for materials sold by m² (see expert skill);
+- the report position (`Seq`) of every production line, from the shop flow (« Conventions » in `procedure-construction.md`), shown in the plan;
+- the order of the questions in the form.
+Do not set the integration price group (assigned by PJM from the customer company).
 Write each formula from its `basis` (sheets, copies, pages, m², ml, flat, custom) with the expert skill; check parentheses, length ≤ 1400, spaces around `<`. Check that every resource, process and material exists in PJM (`catalog/*` of the Atelier, then the live combobox / `matIds`); report anything missing instead of guessing.
 
 ## 3. Build (after confirmation)
-Follow the order of `procedure-construction.md` « Étapes et points d'entrée PJM »: create the engine, quantities, components (Forcer une sélection when `forceSelect`), choices (`addOpts`), production (`addProd`), materials (`addMat`), Calculation components, lead times, suppressions (`supp`), then set « Sélectionnez la quantité » and save.
-After each component, re-read its grids and compare with the plan; fix silently-failed lines (manual-work processes) before moving on.
+Follow the order of `procedure-construction.md` « Étapes et points d'entrée PJM »: create the engine, quantities, components (Forcer une sélection when `forceSelect`), choices (`addOpts`), production (`addProd`), materials (`addMat`), Calculation components, lead times, suppressions (`supp`), then set « Sélectionnez la quantité » (`QuantityDefinition`) and save, and finally order the questions with `orderComponents` (drag-and-drop equivalent) and re-read the order.
+Every `addProd` gets its `Seq` from the report-position convention, never 1 by default.
+After each component, re-read its grids and compare with the plan (process, formulas, `Seq`); fix silently-failed lines (manual-work processes) before moving on.
 
 ## 4. Record the link
 ArtifactData `update` on the sheet:
@@ -42,4 +46,4 @@ ArtifactData `update` on the sheet:
 Run every `tests[]` case with the PJM Test page; write `tests[i].last = {price, at, ok}` (`ok` = |price − expected| ≤ 1 % when `expected` is set). If the sheet has no test case, run one with the default quantities and the first choices, and add it as a case with `expected: null`.
 
 ## 6. Finish
-Set `status` to `cree`. Report in a few lines: engine link, components created, test results, anything left to do by hand (component order in the form, missing machines or papers, rules PJM cannot express such as hiding a choice by quantity).
+Set `status` to `cree`. Report in a few lines: engine link, components created, test results (with the price group used by the Test page), anything left to do by hand (missing machines or papers, duplicated materials, rules PJM cannot express such as hiding a choice by quantity). Do not list the price group or the form order as to-do items.

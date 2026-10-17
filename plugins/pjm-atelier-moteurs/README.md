@@ -37,6 +37,7 @@
 Claude asks before the first write in PJM, never deletes in PJM without explicit confirmation, never enters credentials, and asks before changing a shared material record.
 
 ## Version
+1.3.0 – 17/10/2026 : position des étapes dans le rapport selon le flux de l'atelier, ordre des questions du formulaire automatique, groupe de prix laissé à PJM, fond perdu total dans CalcNup, masquage selon le papier choisi, formats fermés + personnalisé.
 1.2.0 – 17/10/2026 : projet client conseillé, premier repère de consommation mesuré.
 1.1.0 – 17/10/2026 : consommation (une tâche par conversation, estimation avant la tâche).
 1.0.0 – 17/10/2026. Validated on two test engines (digital A4 brochure, Frontlit banner with automatic roll width and weight).
