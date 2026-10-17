@@ -142,3 +142,46 @@ function setC(cid, text, matId){ const e = document.getElementById('component-' 
   w.value(it[w.options.dataValueField]); w.trigger('change'); jQuery(e).trigger('change'); } // jQuery change = recompute hidden questions
 ```
 Set Format / Grammage first, wait ~0.7 s between choices, then quantities (`kendoNumericTextBox` if present), then click the button (an `input`/`button` whose text is « Calculer le plan de production ») and wait ~5 s. Results: « Prix hors taxes » line, material blocks (`numberup`, `qty`) and equipment blocks (process / resource). The Test page shows every component (suppressions are not visible there) but the calculation respects them.
+
+## Creating resources, processes and materials – validated 17/10/2026
+Only when the user asked for it or confirmed. Decimal values use a comma (`0,01`).
+
+```js
+// full form of a page → URLSearchParams (first value per name, unchecked checkboxes skipped)
+async function formData(url, sel){ const d = await H.doc(url); const f = d.querySelector(sel); const fd = new URLSearchParams(); const seen = new Set();
+  f.querySelectorAll('input[name],select[name],textarea[name]').forEach(e => { if(e.type==='checkbox' && !e.checked) return; if(seen.has(e.name)) return; seen.add(e.name); fd.append(e.name, e.value); });
+  return {fd, action: f.getAttribute('action')}; }
+const postForm = (url, fd) => fetch(url, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: fd.toString()});
+
+// resource (equipment); then read its Id in /Production/_Index (grid) by name
+async function addResource(name, departmentId, facilityId, type=0){ const {fd} = await formData('/Production/Create', 'form[action*="Production"]');
+  fd.set('IsDeleted','False'); fd.set('Name',name); fd.set('DepartmentId',departmentId); fd.set('FacilityId',facilityId); fd.set('ProductionType',String(type));
+  return (await postForm('/Production/Save', fd)).status; }
+// process with its price per unit (processes of a resource: grid /Processes/Steps/{resourceId})
+async function addProcess(resourceId, name, unitName, unitPrice){ const {fd, action} = await formData('/Processes/Create?pid=' + resourceId + '&ptype=Equipment', 'form[action*="Process"]');
+  fd.set('Name',name); fd.set('UnitName',unitName); fd.set('WorkFlowComponentRange.RunTimeUnitRawCost', String(unitPrice).replace('.',','));
+  return (await postForm(action, fd)).status; }
+// price ranges of a process: grid /Processes/_ListComponentRanges (body … &id={processId}) → FixedPerUnitCost
+// change a range: form /Processes/EditRange/{rangeId}?ptype=Equipment → POST /Processes/SaveRange (set RunTimeUnitRawCost, confirmedSave True)
+
+// material sold by unit = W x H mm; price = cost / itemCount; weight = weightPer for weightCount items
+async function addMaterial(name, categoryId, w, h, cost, itemCount, weightPer, weightCount, desc=''){ const {fd} = await formData('/Materials/Create', 'form[action*="Material"]');
+  fd.set('IsDeleted','False'); fd.set('Name',name); fd.set('ExternalName',name); fd.set('Description',desc); fd.set('CategoryID',categoryId); fd.set('ddlCategories',categoryId); fd.delete('ddlSubCategories');
+  fd.set('Width',String(w)); fd.set('Height',String(h)); fd.set('WeightPer',String(weightPer).replace('.',',')); fd.set('WeightTotal',String(weightCount)); fd.set('StartingInventory','0');
+  fd.set('MaterialRange.FromQuantity','0'); fd.set('MaterialRange.ToQuantity','999999999'); fd.set('MaterialRange.ItemCount',String(itemCount)); fd.set('MaterialRange.CostforItemCount',String(cost).replace('.',',')); fd.set('MaterialRange.CostAdjustment','0');
+  return (await postForm('/Materials/Save', fd)).status; }
+// e.g. 0,13684 €/ml, 2,88 kg per 1000 ml: addMaterial('Étiquette pelliculage brillant - laize 220 mm (ml)', catId, 220, 1000, 13684, 100000, 3.52, 1000)
+// categories: ids in the span[data-id] items of #CategoryIdDropDown_div on /Materials/Create
+// check: grid /Materials/_ListMaterialRanges (body … &id={materialId}) → PriceBasis
+
+// edit a material (dimensions, weight): resend the edit form, ddlCategories must be the category id (otherwise HTTP 500)
+async function editMaterial(id, changes){ const d = await H.doc('/Materials/Edit/' + id); const f = d.querySelector('form[action*="Materials/Save"]'); const fd = new URLSearchParams();
+  f.querySelectorAll('input[name],select[name],textarea[name]').forEach(e => { if(e.type==='checkbox' && !e.checked) return; fd.append(e.name, e.value); });
+  for (const [k,v] of Object.entries(changes)) fd.set(k, v); fd.set('ddlCategories', fd.get('CategoryID')); fd.delete('ddlSubCategories');
+  return (await postForm('/Materials/Save', fd)).status; }
+```
+
+## Test page by script – notes 17/10/2026
+- Open it with `document.getElementById('btnTest').click()` on the engine edit page; price group: `#ddlPriceGroups` / `#PriceGroupId` (choose the « + 0 % » group if any); compute: `#GetPrice`.
+- Reload the edit page after changing the engine: the Test page keeps the previous definition.
+- Run one case per JavaScript call (each takes ~10 s; several in one call exceed the tool timeout). Read the results with `document.body.innerText` after « Remise à zéro »: materials show `size`, `numberup`, `qty`, `weight`, `Coût`.

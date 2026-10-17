@@ -31,7 +31,8 @@ Turn the sheet into a list of PJM objects:
 - the report position (`Seq`) of every production line, from the shop flow (« Conventions » in `procedure-construction.md`), shown in the plan;
 - the order of the questions in the form.
 Do not set the integration price group (assigned by PJM from the customer company).
-Write each formula from its `basis` (sheets, copies, pages, m², ml, flat, custom) with the expert skill; check parentheses, length ≤ 1400, spaces around `<`. Check that every resource, process and material exists in PJM (`catalog/*` of the Atelier, then the live combobox / `matIds`); report anything missing instead of guessing.
+Write each formula from its `basis` (sheets, copies, pages, m², ml, flat, custom) with the expert skill; check parentheses, length ≤ 1400, spaces around `<`. Check that every resource, process and material exists in PJM (`catalog/*` of the Atelier, then the live combobox / `matIds`); report anything missing instead of guessing. If the user asks to create what is missing, add it to the plan and follow « Créer ressources, procédés et matériaux » in `procedure-construction.md`.
+Before saving, check every formula against the pitfalls of `procedure-construction.md` « Pièges validés le 17/10/2026 » (scientific literals, poses division, ToQty, weight).
 
 ## 3. Build (after confirmation)
 Follow the order of `procedure-construction.md` « Étapes et points d'entrée PJM »: create the engine, quantities, components (Forcer une sélection when `forceSelect`), choices (`addOpts`), production (`addProd`), materials (`addMat`), Calculation components, lead times, suppressions (`supp`), then set « Sélectionnez la quantité » (`QuantityDefinition`) and save, and finally order the questions with `orderComponents` (drag-and-drop equivalent) and re-read the order.

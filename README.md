@@ -1,6 +1,6 @@
 # Plugin PJM – Atelier Moteurs (Aleyant)
 
-Marketplace Cowork contenant le plugin **pjm-atelier-moteurs** : décrivez vos moteurs de prix PrintJobManager dans l'« Atelier », puis laissez Claude les construire, les importer ou les mettre à jour dans votre PJM via Claude in Chrome. Interface et moteurs en français, espagnol ou anglais.
+Marketplace Cowork contenant le plugin **pjm-atelier-moteurs** : décrivez vos moteurs de prix PrintJobManager dans l'« Atelier », puis laissez Claude les construire, les importer, les mettre à jour ou reprendre un calculateur Excel / Pressero dans votre PJM via Claude in Chrome. Interface et moteurs en français, espagnol ou anglais.
 
 ## Installer
 1. Application Claude (Cowork) → **Personnaliser** → **Plugins** → **Ajouter une marketplace**.

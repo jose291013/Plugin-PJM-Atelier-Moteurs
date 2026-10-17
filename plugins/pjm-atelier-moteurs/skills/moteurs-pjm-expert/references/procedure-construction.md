@@ -154,3 +154,26 @@ Le champ `Seq` d'une ligne de production = colonne « position s… » = ordre d
 - `saveoption` répond en HTML (redirection) mais crée bien le choix : vérifier avec la grille `/PEOptions/_Index?cid=`.
 - Moteur : « Sélectionnez la quantité » = champ `QuantityDefinition` (« Q1 ») du formulaire `/ProductEngines/Save`.
 - Page Test : les questions masquées sont recalculées sur l'événement jQuery `change` de l'élément `#component-{id avec _}` ; avec Kendo, appeler `w.value(v); w.trigger('change'); jQuery(e).trigger('change')`, attendre ~0,7 s entre deux choix, sinon « Required: Papier ».
+
+## Pièges validés le 17/10/2026 (moteur « Étiquettes en bobine »)
+- **Decimal × Double** : `Ceiling()/floor()` renvoient des Double, `0.9` est un Decimal → expression en erreur sans message (production = 1 €, matériau absent). Tous les non-entiers en notation scientifique (`45E-1`, `198E-6`, `1E6`).
+- **Production + poses** : quantité finale = Ceiling(formule / Nup()). Si les poses servent à autre chose (laize retenue…), écrire `(…)*Nup()` ; pour garder les centimes, procédé à 0,01 €/unité et formule × 100.
+- **Matériau + poses en formule** : quantité non divisée ; poses en nombre fixe (`2`) : quantité divisée.
+- **`Nup()` = 1 dans « Calcul du poids »** → recalculer la sélection dans la formule de poids (sinon division par 0 : « Value was either too large or too small for a Decimal »).
+- **ToQty = 0 sur une ligne matériau d'un choix ⇒ ligne ignorée** : mettre 999999. Les lignes de quantité 0 n'apparaissent pas sur le devis.
+- **Poids** : « Calcul du poids » ignoré si WeightPer du matériau = 0 ; PJM arrondit WeightPer et le coût matériau à 2 décimales → saisir le poids pour 1000 articles et le coût pour 100 000 articles.
+- **Page Test en cache** : recharger la page d'édition du moteur avant de retester après une modification.
+- Pas de Q6 : utiliser R1…R5, P1…P5, S1…S5.
+
+## Matériau par laize au mètre linéaire (validé 17/10/2026)
+- Un matériau par laize et par support : « {support} - laize {W} mm (ml) », dimensions W × 1000 mm, prix au ml = prix m² × W/1000.
+- Dans chaque choix : une ligne par laize, poses = formule qui renvoie la laize retenue, quantité `if(Nup() = W, ml × coef, 0)`, poids `if(<sélection> = W, …, 0)` (sélection recopiée, pas de Nup()).
+- Le devis n'affiche que la ligne de la laize retenue : l'atelier voit directement la bobine mère à sortir.
+- Exemple complet : skill `reprendre-excel-pjm`, `references/exemple-etiquettes-bobine.md`.
+
+## Créer ressources, procédés et matériaux (validé 17/10/2026)
+- Seulement si l'utilisateur le demande ou le confirme ; détails des appels dans `scripts-pjm.md`.
+- Ressource : `/Production/Save` (Name, DepartmentId, FacilityId, ProductionType 0 = Équipement, 1 = Travail manuel).
+- Procédé : formulaire `/Processes/Create?pid={ressource}&ptype=Equipment` → POST de son action avec Name, UnitName et `WorkFlowComponentRange.RunTimeUnitRawCost` (prix par unité, virgule décimale) ; tarif modifiable ensuite par `/Processes/EditRange/{rangeId}?ptype=Equipment` → `/Processes/SaveRange`.
+- Matériau : formulaire `/Materials/Create` → `/Materials/Save` avec CategoryID + ddlCategories = Id de catégorie, Width, Height, WeightPer / WeightTotal, `MaterialRange.FromQuantity/ToQuantity/ItemCount/CostforItemCount/CostAdjustment`. Prix unitaire = CostforItemCount / ItemCount × (1 + ajustement %).
+- Modifier un matériau : renvoyer le formulaire `/Materials/Edit/{id}` vers `/Materials/Save` en remplaçant `ddlCategories` (« System.Guid[] ») par l'Id de catégorie et sans `ddlSubCategories` (sinon 500) ; tarif : `/Materials/SaveMaterialRange` (MaterialID, Id de la tranche, FromQuantity, ToQuantity, ItemCount, CostforItemCount, CostAdjustment).

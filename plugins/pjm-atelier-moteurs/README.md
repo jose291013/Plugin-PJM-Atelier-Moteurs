@@ -17,6 +17,7 @@
 | construire-moteur-pjm | Builds a new engine from a sheet « Prête à construire », runs tests | « Construis le moteur de la fiche Brochure A4 » |
 | mettre-a-jour-moteur-pjm | Applies the changes of a sheet to its existing engine | « Mets à jour le moteur Bâche » |
 | importer-moteur-pjm | Turns an existing PJM engine into an Atelier sheet | « Importe le moteur …/ProductEngines/Edit/… » |
+| reprendre-excel-pjm | Rebuilds an Excel / Pressero price calculator in PJM (creates missing machines and papers), tests against the Excel | « Reproduis ce moteur Excel dans PJM » |
 | moteurs-pjm-expert | NCalc / PJM formula expertise, used by all the others | « Corrige cette formule PJM » |
 
 ## Getting started
@@ -37,6 +38,7 @@
 Claude asks before the first write in PJM, never deletes in PJM without explicit confirmation, never enters credentials, and asks before changing a shared material record.
 
 ## Version
+1.4.0 – 17/10/2026 : nouveau skill reprendre-excel-pjm (Excel / Pressero → PJM, simulateur NCalc), pièges PJM validés (Decimal × Double, division par les poses, ToQty matériau, poids), création de ressources / procédés / matériaux, matériaux par laize au mètre linéaire.
 1.3.0 – 17/10/2026 : position des étapes dans le rapport selon le flux de l'atelier, ordre des questions du formulaire automatique, groupe de prix laissé à PJM, fond perdu total dans CalcNup, masquage selon le papier choisi, formats fermés + personnalisé.
 1.2.0 – 17/10/2026 : projet client conseillé, premier repère de consommation mesuré.
 1.1.0 – 17/10/2026 : consommation (une tâche par conversation, estimation avant la tâche).
