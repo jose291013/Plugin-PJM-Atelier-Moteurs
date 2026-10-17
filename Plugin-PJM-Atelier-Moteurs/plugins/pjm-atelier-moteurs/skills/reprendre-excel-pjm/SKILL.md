@@ -29,6 +29,7 @@ Same as `construire-moteur-pjm`: never type PJM credentials, show the plan and g
 - Inputs → Q1…Q5, then R1…R5 (there is no Q6); dropdowns that change the price → forced Options; informative dropdowns → Options without lines; lead-time multipliers → « Délai » Option with markups.
 - A formula cannot read an option: put each option-dependent cost in a line of that choice; costs depending only on quantities → a Calculation component.
 - Automatic choice among formats / roll widths: the selection goes in the poses field (returns the chosen width), each line tests `if(Nup() = W, …, 0)`; one material per width so the ticket shows what to use (see the example).
+- Keep material quantities real (m², ml, sheets): the workshop reads them. A margin that varies with the quantity goes in a separate « Marge » production line (0,01 € process, cents) in the same choice, never in the material quantity.
 - Write every NCalc formula from the Python model, then evaluate the formulas themselves with `scripts/ncalc_sim.py` on ≥ 3 000 random cases against the model (0 differences, length ≤ 1400, spaces around `<`, no decimal literal: `45E-1`, not `4.5`).
 
 ## 4. Catalogue

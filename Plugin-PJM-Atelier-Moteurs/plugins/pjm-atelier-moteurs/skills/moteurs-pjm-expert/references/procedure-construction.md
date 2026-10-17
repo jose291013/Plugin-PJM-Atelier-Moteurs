@@ -167,7 +167,8 @@ Le champ `Seq` d'une ligne de production = colonne « position s… » = ordre d
 
 ## Matériau par laize au mètre linéaire (validé 17/10/2026)
 - Un matériau par laize et par support : « {support} - laize {W} mm (ml) », dimensions W × 1000 mm, prix au ml = prix m² × W/1000.
-- Dans chaque choix : une ligne par laize, poses = formule qui renvoie la laize retenue, quantité `if(Nup() = W, ml × coef, 0)`, poids `if(<sélection> = W, …, 0)` (sélection recopiée, pas de Nup()).
+- Dans chaque choix : une ligne par laize, poses = formule qui renvoie la laize retenue, quantité `if(Nup() = W, ml réels, 0)`, poids `if(<sélection> = W, …, 0)` (sélection recopiée, pas de Nup()).
+- Marge variable (coefficient selon la surface) : ne pas la mettre dans la quantité matériau (l'atelier lirait des mètres faux) ; ajouter dans le même choix une ligne de production « Marge » (procédé à 0,01 €/unité, poses = formule de laize, quantité = (coef − 1) × coût matière × 100 × Nup()). Minimum de facturation : coef × Max(coût, minimum) − coût.
 - Le devis n'affiche que la ligne de la laize retenue : l'atelier voit directement la bobine mère à sortir.
 - Exemple complet : skill `reprendre-excel-pjm`, `references/exemple-etiquettes-bobine.md`.
 

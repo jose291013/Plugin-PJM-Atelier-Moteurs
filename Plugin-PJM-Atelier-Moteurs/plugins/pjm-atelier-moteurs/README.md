@@ -38,6 +38,7 @@
 Claude asks before the first write in PJM, never deletes in PJM without explicit confirmation, never enters credentials, and asks before changing a shared material record.
 
 ## Version
+1.4.1 – 17/10/2026 : matériaux en quantités réelles (mètres linéaires) et marge dans une ligne « Marge » séparée (exemple Étiquettes mis à jour).
 1.4.0 – 17/10/2026 : nouveau skill reprendre-excel-pjm (Excel / Pressero → PJM, simulateur NCalc), pièges PJM validés (Decimal × Double, division par les poses, ToQty matériau, poids), création de ressources / procédés / matériaux, matériaux par laize au mètre linéaire.
 1.3.0 – 17/10/2026 : position des étapes dans le rapport selon le flux de l'atelier, ordre des questions du formulaire automatique, groupe de prix laissé à PJM, fond perdu total dans CalcNup, masquage selon le papier choisi, formats fermés + personnalisé.
 1.2.0 – 17/10/2026 : projet client conseillé, premier repère de consommation mesuré.

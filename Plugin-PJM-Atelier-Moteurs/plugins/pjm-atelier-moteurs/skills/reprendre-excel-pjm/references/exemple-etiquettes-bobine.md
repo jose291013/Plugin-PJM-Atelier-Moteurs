@@ -1,6 +1,6 @@
 # Exemple validé : « Étiquettes en bobine » (Excel Pressero → PJM, 17/10/2026)
 
-Moteur de démonstration : prix identiques à l'Excel à 0,01 € près sur 4 cas, poids identique.
+Moteur de démonstration (compte Demo Spanish) : prix identiques à l'Excel à 0,01 € près sur 4 cas, poids identique.
 
 ## Excel d'origine (logique reproduite à l'identique)
 - Entrées : Q1 nombre de bobines, Q2 étiquettes par bobine, Q3 laize étiquette (mm), Q4 hauteur (mm), Q5 espace (mm), R1 diamètre maxi (info).
