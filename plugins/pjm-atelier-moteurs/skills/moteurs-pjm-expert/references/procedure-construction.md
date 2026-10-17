@@ -1,0 +1,104 @@
+# Procédure de construction d'un moteur PJM via Claude in Chrome (validée le 16/10/2026)
+
+Procédure validée sur deux moteurs de test (brochure A4 numérique, bâche Frontlit).
+
+## Langue du moteur
+Construire le moteur dans la langue de la fiche (`engine.language`) : noms, textes client, choix et délais tels qu'ils sont dans la fiche. Ne jamais traduire les noms PJM (ressources, procédés, matériaux).
+
+## Instance PJM du client
+- L'adresse de base du PJM est dans l'Atelier : `settings/app.pjmUrl` (écran admin) et `pjm.instance` dans le JSON de la fiche. Toujours l'utiliser (ne jamais supposer une adresse).
+
+## Cycle de vie d'une fiche (statuts)
+brouillon → pret (Prête à construire) → construction → cree (Créé dans PJM) → maj (À mettre à jour) → … ; import (À importer depuis PJM).
+
+## Correspondance fiche ↔ PJM (`briefs.pjm`)
+- `pjm.engineId`, `pjm.url`, `pjm.builtAt`, `pjm.importedAt`, `pjm.map` :
+  `map[componentLocalId] = {pjmId, options:{optionLocalId:{pjmId, productions:[pjmLineId…], materials:[pjmLineId…]}}, productions:[…], materials:[…], suppressions:[…]}`.
+- À la construction et à l'import, remplir `map` avec les identifiants PJM de chaque composant, choix, ligne de production, ligne matériau et suppression.
+
+## Mise à jour d'un moteur existant (statut « maj »)
+1. Réimporter d'abord l'état réel du moteur PJM (lecture seule) pour repérer les modifications faites à la main ; les signaler à l'utilisateur.
+2. Comparer la fiche au moteur : composants, choix, lignes (ressource/procédé/formules), suppressions, délais.
+3. Présenter la liste des différences (ajouts, modifications, suppressions) et attendre la confirmation.
+4. Appliquer uniquement les différences (ajout : endpoints habituels ; modification : même endpoint avec l'Id existant). Ne jamais supprimer sans confirmation explicite.
+5. Relancer les cas de test, mettre à jour `pjm.map`, `tests[].last`, statut « cree ».
+
+## Import d'un moteur existant (statut « import »)
+- L'utilisateur colle l'adresse /ProductEngines/Edit/{id} dans l'Atelier (Nouvelle fiche → Importer).
+- Lire le moteur : quantités (Name, Prompt, min, max, défaut), options (choix, Markup, lignes de production et matériaux avec formules), composants Matériel et Calcul, suppressions.
+- Remplir la fiche (components, delays si un composant Option ne contient que des marges, hideWhen, pjm.map, pjm.importedAt) ; formules non standard → step.basis « custom » avec la formule d'origine. Statut « cree » à la fin.
+
+## Cas de test (`briefs.tests`)
+- {label, q:{Q1:…}, c:{componentLocalId: nom du choix, __delay: libellé}, expected, last:{price, at, ok}}.
+- Après chaque construction ou mise à jour : les exécuter avec le bouton Test de PJM (« Calculer le plan de production »), écrire `last` (prix HT, date, ok = écart ≤ 1 % si expected renseigné) et signaler les écarts.
+
+## Étapes et points d'entrée PJM
+1. Moteur : /ProductEngines/Create → champs Name, catégorie (select), Description, Prix min/max → Sauvegarder. L'id se lit dans les liens /ProductEngines/Quantity/{engineId}.
+2. Quantité : /ProductEngines/Quantity/{engineId} → select Name (Q1..Q5, R1.., P1.., S1..), Prompt, MinQty, MaxQty, DefaultQty, Decimals, ArbitraryQty (coché par défaut).
+3. Option : /ProductEngines/Option/{engineId} → Name, Prompt → après sauvegarde, page ComponentEdit : case IsRequired (Forcer une sélection) puis Sauvegarder.
+   - Ajout de choix : POST /productengines/saveoption (champs __RequestVerificationToken, Id=cid, ComponentId=cid, Sequence, SubscriberId, CreateDate, cid, OptionName, Markup). Le jeton se prend sur /productengines/addoption/{cid}.
+   - Ids des choix : liens EditOption sur /ProductEngines/ComponentEdit/{cid}.
+4. Production d'un choix ou d'un Calcul : POST /PECompWorkflows/SaveComponentProduction
+   (ComponentProductionId=000…, ComponentId=cid=OptionId=<id du choix ou du composant Calcul>, FromQty, ToQty, WorkflowComponentId=<id du procédé>, WorkflowComponentId_input=<nom>, Seq, Instructions, QuantityCalculation, NumberUpExpression). Réponse {"ErrorCode":0}.
+   - Les procédés (WorkflowComponent) : combobox #ddlworkflowComponents, items {Id, Name "Procédé (groupe)", Group = ressource}. L'Id = Id du procédé de la ressource.
+5. Matériel : /ProductEngines/Material/{engineId} → Name, Prompt, MaterialListingType (0 = spécifiques), multiselect Kendo ddlMaterials (valeurs = ids des matériaux, retrouvés par le texte de l'option), CalculationFormula, NumberUpExpression, WeightCalculation.
+6. Calcul : /ProductEngines/Calculation/{engineId} → Name, Prompt ; production comme au point 4 avec l'id du composant.
+7. Suppressions (masquer X si composant Y = valeur) : POST /PECompSuppressions/Save?compId={X}&engineId={E}
+   (Id=000…, EngineId, ComponentId=X, SubscriberId, SuppressedComponentId=Y (composant condition), Name=nom de Y, Value=<id du choix de Y>, ComponentName, SuppressedValueName, SuppressedComponentType=0, MaterialId=000…).
+   - Valeurs possibles : POST /PECompSuppressions/GetOptionValues (cid=X, oid=Y) → « --Sélectionner-- » a la valeur `select_one_id`, puis les choix (StringId = id du choix).
+8. Délais : composant Option « Délais de production » (non forcé, sans production), un choix par délai, marge dans Markup (Ajustement global du travail %). Ex. : J+5 0 %, J+3 15 %, J+1 25 %. Le 1er délai = défaut.
+9. Moteur : « Sélectionnez la quantité » = Q1 puis Sauvegarder ; bouton Test → « Calculer le plan de production ».
+
+## Lignes matériau dans une Option (validé sur la bâche, 16/10/2026)
+- POST /PECompMaterials/SaveComponentMaterial : Id = 000… pour créer (ou l'Id de la ligne pour la modifier), ComponentId = cid = OptionId = id du choix,
+  FromQty, ToQty, MaterialId (+ MaterialId_input = nom), ReportPosition, Instructions, QuantityCalculation, NumberUpExpression, WeightCalculation.
+- Ids des matériaux : combobox MaterialId du formulaire matériau (champ Name). Lecture des lignes : grille /PECompMaterials/_Index (URL lue dans la grille).
+- Le même matériau ne peut pas être ajouté deux fois au même choix (ErrorCode 437).
+- Limite : 1400 caractères par formule (QuantityCalculation et NumberUpExpression).
+- Astuce : `Nup()` dans la formule de quantité renvoie la formule de poses de la même ligne → on y met la consommation de la ligne, puis on la compare aux autres laizes.
+
+## Choix automatique de la laize (bâche)
+- Une ligne matériau par laize (100, 160, 200, 250, 320, 500 cm) dans chaque choix de bâche.
+- Poses (NumberUpExpression) = consommation en cm² : `L*Min(if(MN <= L,Ceiling(Q1/floor(L/MN))*MX,9E8),if(MX <= L,Ceiling(Q1/floor(L/MX))*MN,9E8))` avec MN = (Min(Q2,Q3)+6), MX = (Max(Q2,Q3)+6).
+- Quantité = `if(MN > L,0, if(C(autre) <= Nup(),0, … Nup()/10000.0))` : <= contre les laizes plus petites, < contre les plus grandes → une seule laize non nulle (m²).
+
+## Poids des matériaux vendus au m² (16/10/2026)
+- Quand on détourne le champ « poses » (Nup) pour un calcul (ex. consommation de laize), le poids calculé par PJM devient faux : il faut renseigner le champ « Calcul du poids » (WeightCalculation) de chaque ligne matériau.
+- Formule : `(Q2*10)*(Q3*10)*Q1*Weight`
+  - Q2, Q3 en cm → ×10 pour passer en mm (les dimensions des matériaux PJM sont en mm).
+  - `Weight` = poids du matériau ramené au mm² = WeightPer / (Largeur × Hauteur du matériau).
+- Prérequis sur la fiche matériau PJM : dimensions 1000 × 1000 mm (unité = 1 m²) et WeightPer = grammage en kg/m² (ex. 0,45 pour 450 g/m²). Sinon `Weight` est calculé sur la surface du rouleau et le poids est faux.
+- Le poids est celui de la surface finie (Q2 × Q3), pas de la laize consommée.
+- Contrôle : 1 bâche 200 × 100 cm en Frontlit 450 g → 0,90 kg ; en B1 510 g → 1,02 kg ; 5 × 300 × 600 cm en B1 → 45,9 kg.
+- Fait sur le moteur test bâche : 12 matériaux Frontlit (PRINT PA 450 g et B1 510 g, 6 laizes) passés en 1000 × 1000 mm, WeightPer 0,45 / 0,51.
+  Le choix de laize n'utilise pas les dimensions du matériau (laizes en dur dans les formules), il n'est donc pas affecté.
+- Modifier une fiche matériau : passer par le formulaire /Materials/Edit/{id} (remplir puis Sauvegarder) ; un POST direct répond 500.
+
+## Règles PJM importantes
+- Une formule ne peut pas tester la réponse d'une option : on duplique les composants (ex. Impression intérieur / Impression intérieur + couv) et on les masque par suppression selon « Couverture différente ? ».
+- Règle : une option à sélection forcée encore sur « --Sélectionner-- » doit se comporter comme si son 1er choix était choisi. Donc tout composant masqué quand le 1er choix est sélectionné reçoit aussi une suppression avec la valeur `select_one_id`. Ex. : Impression intérieur et Papier intérieur masqués si Couverture différente = Oui OU --Sélectionner--.
+
+## Incompatibilités (onglet « Règles » de l'Atelier → JSON)
+- Masquer une question entière quand X = valeur → suppression PJM (champ hideWhen des composants).
+- Retirer seulement certains choix d'une option (`restrictions`) → PJM ne masque pas un choix isolé : dupliquer le composant cible (version complète / version réduite) et masquer l'une ou l'autre selon X.
+- Une suppression peut dépendre d'un matériau (champ MaterialId) — à valider au premier cas réel.
+- `businessRules` (texte libre) : règles liées aux quantités → formules ou limites min/max des Quantités.
+
+## Pièges relevés
+- Formules : toujours mettre des espaces autour de < et <= (« <Nup() » est rejeté par la protection anti-HTML du serveur : réponse HTML au lieu de JSON).
+- Procédés des ressources « Travail manuel » (ex. Renfort, Oeuillets) : la liste #ddlworkflowComponents contient d'abord l'entrée de la ressource puis le procédé ; prendre le procédé (ex. « Oeuillets (oeuillets) »), sinon l'enregistrement répond OK mais rien n'est créé. Toujours relire la grille après ajout.
+- La sortie de l'outil JavaScript est bloquée si elle contient « & » ou des motifs « x=y » : remplacer ces caractères avant de renvoyer du texte.
+- Le nom affiché d'un matériau peut différer de son nom catalogue (ex. « Couché Brillant 135 Gr » s'affiche « Papier supérieur blanc 135 Gr »).
+- L'ordre des composants dans le formulaire n'est pas l'ordre de création : à réordonner dans PJM.
+- Le formulaire Test de PJM affiche tous les composants (les suppressions ne s'y voient pas), mais le calcul les respecte.
+- Session PJM expirée → l'utilisateur se reconnecte, Claude ne saisit jamais d'identifiants.
+
+## Résultat du test bâche (Bâche Frontlit)
+- 1 × 200 × 100 cm PRINT PA, Production, ourlet + œillets : laize 2,50 m, 2,65 m², 145,46 € HT (J+5) / 181,82 € (J+1, +25 %).
+- 5 × 300 × 600 cm B1, Qualité, fourreaux : laize 3,20 m, 96,96 m², œillets masqués.
+- Limite PJM : un choix (J+1) ne peut pas être masqué selon une quantité → libellé « J+1 (jusqu'à 50 ex.) ».
+
+## Résultat du test brochure
+100 ex. × 16 p. A4, Couché Mat 115, quadri RV, piqûre :
+- couverture identique : 400 feuilles 450×320, 104,98 € HT ;
+- couverture différente Brillant 250 g quadri recto + pelliculage mat : 300 feuilles intérieur + 100 couverture, 141,66 € HT.

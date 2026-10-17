@@ -1,0 +1,1185 @@
+<title>Atelier Moteurs PJM</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: atelier — liste des fiches à gauche, fiche en cours à droite, onglets par étape. */
+:root{
+  --paper:#f4f6f5; --sheet:#ffffff; --ink:#18212b; --ink-2:#4c5864; --ink-3:#7b8692;
+  --line:#d8dee2; --line-2:#e8ecee; --accent:#0a7380; --accent-ink:#ffffff; --accent-soft:#e1f1f2;
+  --ok:#2e7d4f; --ok-soft:#e3f2e8; --warn:#9a6200; --warn-soft:#fbefd7; --bad:#b4233c; --bad-soft:#fbe4e8;
+  --mag:#a8326e;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#11171c; --sheet:#182027; --ink:#e7ecef; --ink-2:#aab5bf; --ink-3:#7e8a95;
+  --line:#2c3842; --line-2:#222c34; --accent:#3fb4c1; --accent-ink:#0b1a1d; --accent-soft:#16343a;
+  --ok:#6cc58f; --ok-soft:#173326; --warn:#e3a94a; --warn-soft:#3a2c12; --bad:#f07a8f; --bad-soft:#3d1b23; --mag:#e27bb0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11171c; --sheet:#182027; --ink:#e7ecef; --ink-2:#aab5bf; --ink-3:#7e8a95;
+  --line:#2c3842; --line-2:#222c34; --accent:#3fb4c1; --accent-ink:#0b1a1d; --accent-soft:#16343a;
+  --ok:#6cc58f; --ok-soft:#173326; --warn:#e3a94a; --warn-soft:#3a2c12; --bad:#f07a8f; --bad-soft:#3d1b23; --mag:#e27bb0;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font:14px/1.5 var(--f-body);margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-stretch:85%;letter-spacing:.005em;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.app{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:100%}
+@media (max-width:820px){.app{grid-template-columns:1fr}}
+/* top bar */
+.top{grid-column:1/-1;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  border-bottom:1px solid var(--line);background:var(--sheet)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{flex:none}
+.brand h1{font-size:20px;font-weight:750}
+.brand small{display:block;font:500 11px/1.2 var(--f-mono);color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.top .meta{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap;color:var(--ink-2);font-size:12.5px}
+.save{font:500 12px var(--f-mono);color:var(--ink-3)}
+.save[data-s="saving"]{color:var(--warn)} .save[data-s="saved"]{color:var(--ok)} .save[data-s="error"]{color:var(--bad)}
+/* side */
+.side{border-right:1px solid var(--line);background:var(--sheet);padding-block:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (max-width:820px){.side{border-right:0;border-bottom:1px solid var(--line);padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.side h2{font-size:13px;font-family:var(--f-mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.list{display:flex;flex-direction:column;gap:4px}
+.item{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center;text-align:left;width:100%;border:1px solid transparent;
+  background:none;padding:9px 10px;border-radius:var(--r);cursor:pointer}
+.item:hover{background:var(--line-2)}
+.item[aria-current="true"]{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.item .ic{grid-row:1/3;width:30px;height:30px;border-radius:5px;display:grid;place-items:center;background:var(--line-2);color:var(--ink-2)}
+.item b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item span{font-size:12px;color:var(--ink-3);display:flex;gap:6px;align-items:center}
+.empty-side{color:var(--ink-3);font-size:13px;padding:8px 2px}
+/* main */
+.main{min-width:0;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sheet);border-radius:var(--r);
+  padding:7px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:transparent;background:none;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--line-2)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:4px 8px;font-size:12.5px}
+.btn:focus-visible,.item:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.tab:focus-visible,.ptype:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pill{display:inline-flex;align-items:center;gap:5px;font:500 11.5px/1 var(--f-body);padding:4px 8px;border-radius:99px;background:var(--line-2);color:var(--ink-2);white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.brouillon{color:var(--ink-2)} .pill.pret{background:var(--accent-soft);color:var(--accent)}
+.pill.construction,.pill.maj,.pill.import{background:var(--warn-soft);color:var(--warn)} .pill.cree{background:var(--ok-soft);color:var(--ok)}
+/* head of fiche */
+.fhead{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.fhead .t{flex:1;min-width:0}
+.fhead .t input{font:750 28px/1.15 var(--f-display);font-stretch:82%;border:0;background:none;width:100%;padding:2px 0;border-bottom:1px dashed transparent}
+.fhead .t input:hover{border-bottom-color:var(--line)}
+.fhead .sub{color:var(--ink-2);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--ink-2);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .n{font:500 11px var(--f-mono);color:var(--ink-3);margin-right:6px}
+.panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:8px}
+.card>.hd{display:flex;align-items:center;gap:10px;padding:12px 14px;flex-wrap:wrap}
+.card>.bd{padding:4px 14px 16px;display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line-2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 14px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field>label,.lbl{font-size:12px;font-weight:600;color:var(--ink-2)}
+.field .hint,.hint{font-size:12px;color:var(--ink-3)}
+input[type=text],input[type=number],select,textarea{width:100%;border:1px solid var(--line);background:var(--sheet);border-radius:5px;padding:7px 9px;min-width:0}
+textarea{resize:vertical;min-height:64px}
+input[type=number]{font-family:var(--f-mono)}
+.check{display:flex;gap:8px;align-items:center;font-size:13px}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.sec-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sec-title h2{font-size:19px;font-weight:700}
+.sec-title p{margin:0;color:var(--ink-2);font-size:13px;flex-basis:100%}
+.code{font:500 12px var(--f-mono);padding:3px 7px;border-radius:4px;background:var(--ink);color:var(--paper)}
+.ctype{font:500 11px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);color:var(--ink-2)}
+.ctype.option{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.ctype.material{color:var(--mag);border-color:color-mix(in srgb,var(--mag) 40%,transparent)}
+.ctype.calculation{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+.comp-name{font-weight:600;flex:1;min-width:120px}
+.comp-q{color:var(--ink-3);font-size:12.5px}
+.tools{display:flex;gap:2px;margin-left:auto}
+.sub-card{border:1px solid var(--line-2);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:12px;background:color-mix(in srgb,var(--paper) 55%,var(--sheet))}
+.sub-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(140px,1.2fr) minmax(130px,1fr) auto;gap:8px;align-items:start}
+.row.mat{grid-template-columns:minmax(160px,1.6fr) minmax(130px,1fr) auto}
+@media (max-width:700px){.row,.row.mat{grid-template-columns:1fr}}
+.row .custom{grid-column:1/-1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:3px 4px 3px 10px;font:500 12.5px var(--f-mono);background:var(--sheet)}
+.chip button{border:0;background:none;cursor:pointer;color:var(--ink-3);width:20px;height:20px;border-radius:50%}
+.chip button:hover{background:var(--line-2);color:var(--bad)}
+.inline-add{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.inline-add input{width:90px}
+.matpick{max-height:220px;overflow:auto;border:1px solid var(--line-2);border-radius:5px;padding:6px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 12px;background:var(--sheet)}
+.matpick label{display:flex;gap:7px;align-items:flex-start;font-size:12.5px;padding:3px 0}
+.matpick input{accent-color:var(--accent);margin-top:3px}
+.addbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 14px;border:1px dashed var(--line);border-radius:8px}
+.addbar .lbl{margin-right:4px}
+.confirm{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--bad)}
+/* new fiche */
+.ptypes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.ptype{text-align:left;border:1px solid var(--line);background:var(--sheet);border-radius:8px;padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.ptype:hover{border-color:var(--accent)}
+.ptype[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.ptype h3{font-size:18px;font-weight:700}
+.ptype p{margin:0;color:var(--ink-2);font-size:13px}
+.ptype .qs{font:500 11.5px var(--f-mono);color:var(--ink-3)}
+/* recap */
+.issues{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.issues li{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:8px 10px;border-radius:5px}
+.issues li.bad{background:var(--bad-soft);color:var(--bad)} .issues li.warn{background:var(--warn-soft);color:var(--warn)} .issues li.ok{background:var(--ok-soft);color:var(--ok)}
+.summary{display:flex;flex-direction:column;gap:10px}
+.summary .c{border-left:3px solid var(--line);padding:2px 0 2px 12px}
+.summary .c.option{border-color:var(--accent)} .summary .c.material{border-color:var(--mag)} .summary .c.calculation{border-color:var(--warn)}
+.summary .c h4{margin:0 0 4px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.summary ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:13px}
+pre.json{margin:0;max-height:420px;overflow:auto;background:var(--ink);color:var(--paper);border-radius:6px;padding:14px;font:12px/1.5 var(--f-mono)}
+.empty{padding:48px 20px;text-align:center;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty h2{font-size:24px;color:var(--ink)}
+.empty p{max-width:52ch;margin:0}
+.banner{padding:10px 14px;border-radius:6px;background:var(--warn-soft);color:var(--warn);font-size:13px}
+.langsw{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.langsw button{border:0;background:var(--sheet);padding:5px 9px;font:500 12px var(--f-mono);letter-spacing:.04em;cursor:pointer;color:var(--ink-2)}
+.langsw button+button{border-left:1px solid var(--line)}
+.langsw button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.langsw button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.rrows{display:flex;flex-direction:column;gap:2px}
+.rrow{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;padding:6px 0;border-top:1px solid var(--line-2)}
+.rrow:first-child{border-top:0}
+.rname{flex:1 1 200px;min-width:0;font-weight:500}
+.rchoices{flex-basis:100%;padding-left:12px}
+.gq-q{font-weight:600}
+.gq.done,.fr.done{border-color:color-mix(in srgb,var(--ok) 40%,var(--line-2))}
+.understood{background:var(--accent-soft);color:var(--ink);border-radius:5px;padding:8px 10px;font-size:13px}
+.understood b{color:var(--accent)}
+details.expert{border:1px dashed var(--line);border-radius:8px;padding:10px 14px}
+details.expert summary{cursor:pointer;font-weight:600;color:var(--ink-2)}
+#admBtn[aria-current="true"]{background:var(--accent-soft);color:var(--accent)}
+.lang-banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:6px;font-size:13px;z-index:20}
+@media (prefers-reduced-motion:no-preference){.card,.ptype,.item{transition:border-color .15s,background .15s}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="6" y="6" width="18" height="18" fill="none" stroke="var(--ink)" stroke-width="1.5"/><path d="M0 6h4M6 0v4M26 6h4M24 0v4M0 24h4M6 26v4M26 24h4M24 26v4" stroke="var(--accent)" stroke-width="1.5"/><circle cx="15" cy="15" r="3.2" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>
+      <div><small id="brandSmall">PrintJobManager</small><h1 id="brandName">Atelier Moteurs</h1></div>
+    </div>
+    <div class="meta">
+      <span id="catInfo">Catalogue PJM : chargement…</span>
+      <span class="save" id="saveState" data-s="idle"></span>
+      <div class="langsw" id="langSw" role="group" aria-label="Langue"><button type="button" data-lang="fr" aria-pressed="false">FR</button><button type="button" data-lang="es" aria-pressed="false">ES</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div>
+    </div>
+  </header>
+  <aside class="side">
+    <button class="btn primary" id="newBtn" type="button">+ Nouvelle fiche moteur</button>
+    <button class="btn ghost sm" id="admBtn" type="button" hidden>Questions guidées (admin)</button>
+    <h2 id="sheetsTitle">Fiches</h2>
+    <div class="list" id="list"><div class="empty-side">Chargement des fiches…</div></div>
+  </aside>
+  <main class="main"><div class="wrap" id="view"></div></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- langues ---------- */
+const LANGS = ["fr","es","en"];
+const T = {
+  brandSmall:["PrintJobManager","PrintJobManager","PrintJobManager"],
+  brand:["Atelier Moteurs","Taller de Motores","Engine Workshop"],
+  newBtn:["+ Nouvelle fiche moteur","+ Nueva ficha de motor","+ New engine sheet"],
+  sheets:["Fiches","Fichas","Sheets"],
+  loading:["Chargement des fiches…","Cargando fichas…","Loading sheets…"],
+  catLoading:["Catalogue PJM : chargement…","Catálogo PJM: cargando…","PJM catalog: loading…"],
+  catLocal:["Catalogue PJM indisponible (mode local)","Catálogo PJM no disponible (modo local)","PJM catalog unavailable (local mode)"],
+  catNone:["Catalogue PJM pas encore chargé","Catálogo PJM aún no cargado","PJM catalog not loaded yet"],
+  catInfo:["Catalogue PJM · {r} ressources · {m} matériaux","Catálogo PJM · {r} recursos · {m} materiales","PJM catalog · {r} resources · {m} materials"],
+  readOn:["lu le {d}","leído el {d}","read on {d}"],
+  noSheets:["Aucune fiche pour l'instant. Créez la première avec le bouton ci-dessus.","Todavía no hay fichas. Cree la primera con el botón de arriba.","No sheets yet. Create the first one with the button above."],
+  emptyTitle:["Préparer un moteur de prix PJM","Preparar un motor de precios PJM","Prepare a PJM pricing engine"],
+  emptyText:["Chaque fiche décrit un moteur : les questions posées au client (quantités, options, papiers), les machines et procédés de production utilisés, les finitions et les délais. Une fois la fiche « Prête à construire », Claude crée le moteur dans PJM via Chrome.","Cada ficha describe un motor: las preguntas al cliente (cantidades, opciones, papeles), las máquinas y procesos de producción, los acabados y los plazos. Cuando la ficha está «Lista para construir», Claude crea el motor en PJM desde Chrome.","Each sheet describes an engine: the questions asked to the customer (quantities, options, papers), the production machines and processes, finishing and lead times. Once the sheet is “Ready to build”, Claude creates the engine in PJM through Chrome."],
+  localBanner:["Base partagée indisponible dans cette vue : les fiches restent dans cette page et ne seront pas enregistrées.","Base compartida no disponible en esta vista: las fichas se quedan en esta página y no se guardarán.","Shared database unavailable in this view: sheets stay in this page and will not be saved."],
+  st_brouillon:["Brouillon","Borrador","Draft"], st_pret:["Prêt à construire","Lista para construir","Ready to build"],
+  st_construction:["En construction","En construcción","In progress"], st_cree:["Créé dans PJM","Creado en PJM","Created in PJM"],
+  ct_quantity:["Quantité","Cantidad","Quantity"], ct_option:["Options","Opciones","Options"], ct_material:["Matériel","Material","Material"], ct_calculation:["Calcul","Cálculo","Calculation"],
+  b_feuilles:["Par feuille imprimée","Por hoja impresa","Per printed sheet"], b_exemplaires:["Par exemplaire (Q1)","Por ejemplar (Q1)","Per copy (Q1)"],
+  b_pages:["Par page","Por página","Per page"], b_cahiers:["Par cahier de 4 pages","Por pliego de 4 páginas","Per 4-page signature"],
+  b_m2:["Par m²","Por m²","Per m²"], b_ml:["Par mètre linéaire","Por metro lineal","Per linear metre"], b_forfait:["Forfait (1 par travail)","Tarifa fija (1 por trabajo)","Flat fee (1 per job)"], b_custom:["Formule personnalisée","Fórmula personalizada","Custom formula"],
+  i_flat:["À plat (1 feuille = 1 exemplaire posé)","Plano (1 hoja = 1 ejemplar impuesto)","Flat (1 sheet = imposed copies)"],
+  i_brochure4:["Brochure piquée (blocs de 4 pages)","Revista grapada (bloques de 4 páginas)","Saddle-stitched (4-page blocks)"],
+  i_feuillets:["Feuillets recto-verso (dos collé)","Hojas a doble cara (encolado)","Double-sided leaves (perfect bound)"],
+  i_surface:["Surface (grand format)","Superficie (gran formato)","Area (large format)"],
+  pt_brochure:["Brochure","Revista / folleto","Booklet"], pt_flyer:["Flyer / dépliant","Flyer / díptico","Flyer / leaflet"], pt_grandformat:["Grand format","Gran formato","Large format"], pt_cartes:["Cartes / petits formats","Tarjetas / pequeño formato","Cards / small formats"],
+  pd_brochure:["Livret piqué ou dos carré collé : couverture + intérieur, pages par multiple de 4.","Revista grapada o encolada: cubierta + interior, páginas en múltiplos de 4.","Saddle-stitched or perfect-bound booklet: cover + inside, pages in multiples of 4."],
+  pd_flyer:["Feuille à plat, recto ou recto-verso, pliage éventuel.","Hoja plana, una o dos caras, plegado opcional.","Flat sheet, single or double-sided, optional folding."],
+  pd_grandformat:["Bâches, panneaux, adhésifs : calcul au m², finitions œillets, ourlets, découpe.","Lonas, paneles, vinilos: cálculo por m², ojales, dobladillos, corte.","Banners, boards, vinyls: priced per m², grommets, hems, cutting."],
+  pd_cartes:["Cartes de visite, étiquettes : forte imposition, coupe dédiée.","Tarjetas de visita, etiquetas: alta imposición, corte específico.","Business cards, labels: high imposition, dedicated cutting."],
+  pq_brochure:["Q1 ex. · Q2 pages · Q3 × Q4 mm","Q1 ej. · Q2 páginas · Q3 × Q4 mm","Q1 copies · Q2 pages · Q3 × Q4 mm"],
+  pq_flyer:["Q1 ex. · Q3 × Q4 mm","Q1 ej. · Q3 × Q4 mm","Q1 copies · Q3 × Q4 mm"],
+  pq_grandformat:["Q1 ex. · Q2 × Q3 cm","Q1 ej. · Q2 × Q3 cm","Q1 copies · Q2 × Q3 cm"],
+  pq_cartes:["Q1 ex. · Q3 × Q4 mm","Q1 ej. · Q3 × Q4 mm","Q1 copies · Q3 × Q4 mm"],
+  newEngine:["Nouveau moteur – {p}","Nuevo motor – {p}","New engine – {p}"],
+  saving:["Modifications…","Cambios…","Editing…"], saving2:["Enregistrement…","Guardando…","Saving…"], saved:["Enregistré","Guardado","Saved"], savedLocal:["Enregistré (local)","Guardado (local)","Saved (local)"],
+  readOnly:["Lecture seule : vous ne pouvez pas modifier","Solo lectura: no puede modificar","Read-only: you cannot edit"], saveFail:["Échec de l'enregistrement, nouvel essai…","Error al guardar, reintentando…","Save failed, retrying…"],
+  createFail:["La fiche n'a pas pu être créée : {e}","No se pudo crear la ficha: {e}","The sheet could not be created: {e}"], delFail:["Suppression impossible","No se pudo eliminar","Could not delete"],
+  created:["Fiche créée à partir du modèle {p}","Ficha creada a partir de la plantilla {p}","Sheet created from the {p} template"],
+  resPh:["— Ressource de production —","— Recurso de producción —","— Production resource —"], manual:["manuel","manual","manual"], toCreate:["à créer dans PJM","a crear en PJM","to create in PJM"], toCreate2:["à créer","a crear","to create"],
+  procPh:["— Procédé —","— Proceso —","— Process —"], catPh:["— Catégorie de matériaux PJM —","— Categoría de materiales PJM —","— PJM material category —"],
+  nameless:["Sans nom","Sin nombre","Untitled"], engineName:["Nom du moteur","Nombre del motor","Engine name"],
+  components:["{n} composants","{n} componentes","{n} components"], modified:["modifié {d}","modificado {d}","edited {d}"],
+  delSheetQ:["Supprimer cette fiche ?","¿Eliminar esta ficha?","Delete this sheet?"], del:["Supprimer","Eliminar","Delete"], cancel:["Annuler","Cancelar","Cancel"], delSheet:["Supprimer la fiche","Eliminar la ficha","Delete sheet"],
+  tab_produit:["Produit","Producto","Product"], tab_formulaire:["Formulaire & production","Formulario y producción","Form & production"], tab_delais:["Délais & prix","Plazos y precios","Lead times & prices"], tab_recap:["Récapitulatif","Resumen","Summary"],
+  newTitle:["Nouvelle fiche moteur","Nueva ficha de motor","New engine sheet"],
+  newText:["Choisissez le type de produit : la fiche est pré-remplie avec les questions et étapes habituelles, que vous ajusterez ensuite.","Elija el tipo de producto: la ficha se rellena con las preguntas y pasos habituales, que luego podrá ajustar.","Choose the product type: the sheet is prefilled with the usual questions and steps, which you can then adjust."],
+  newName:["Nom du moteur dans PJM","Nombre del motor en PJM","Engine name in PJM"], newNamePh:["ex. Brochure A4 numérique","ej. Revista A4 digital","e.g. A4 digital booklet"],
+  createBtn:["Créer la fiche","Crear la ficha","Create sheet"],
+  f_cat:["Catégorie de moteur PJM","Categoría de motor PJM","PJM engine category"], f_status:["Statut","Estado","Status"], f_statusHint:["« Prêt à construire » signale à Claude que la fiche est complète.","«Lista para construir» indica a Claude que la ficha está completa.","“Ready to build” tells Claude the sheet is complete."],
+  f_ptype:["Type de produit","Tipo de producto","Product type"], f_ptypeHint:["Changer le type ne modifie pas les composants déjà saisis.","Cambiar el tipo no modifica los componentes ya creados.","Changing the type does not change existing components."],
+  f_desc:["Description (visible dans PJM)","Descripción (visible en PJM)","Description (shown in PJM)"], f_descPh:["ex. Brochure agrafée, impression numérique, de 8 à 64 pages","ej. Revista grapada, impresión digital, de 8 a 64 páginas","e.g. Stapled booklet, digital print, 8 to 64 pages"],
+  qtyDef:["Définition du calcul de quantité","Definición del cálculo de cantidad","Quantity calculation"], qtyRef:["Quantité de référence","Cantidad de referencia","Reference quantity"], qtyRefHint:["Champ « Sélectionnez la quantité » du moteur.","Campo «Seleccione la cantidad» del motor.","The engine's “Select quantity” field."],
+  options:["Options","Opciones","Options"], multiQty:["Permettre les quantités multiples","Permitir cantidades múltiples","Allow multiple quantities"],
+  hideWhen:["Masquer ce composant quand…","Ocultar este componente cuando…","Hide this component when…"], removeCond:["Retirer la condition","Quitar la condición","Remove condition"], addCond:["+ Condition","+ Condición","+ Condition"],
+  hideHint:["Correspond aux « Composants des suppressions » de PJM. Tant que le client n'a rien choisi (« --Sélectionner-- »), le formulaire se comporte comme si le 1er choix était sélectionné : une suppression « --Sélectionner-- » est ajoutée à la construction.","Corresponde a los «Componentes de supresión» de PJM. Mientras el cliente no elija nada («--Seleccionar--»), el formulario se comporta como si estuviera elegida la 1ª opción: se añade una supresión «--Seleccionar--» al construir.","Matches PJM “Suppression components”. Until the customer picks a value (“--Select--”), the form behaves as if the first choice were selected: a “--Select--” suppression is added at build time."],
+  component:["Composant","Componente","Component"], value:["Valeur","Valor","Value"], resource:["Ressource","Recurso","Resource"], process:["Procédé","Proceso","Process"], basis:["Base de calcul","Base de cálculo","Calculation basis"],
+  removeStep:["Retirer l'étape","Quitar el paso","Remove step"],
+  formulaPh:["Formule NCalc, ex. Ceiling(Q1 / Nup())  — ou décrivez la règle dans la note","Fórmula NCalc, ej. Ceiling(Q1 / Nup())  — o describa la regla en la nota","NCalc formula, e.g. Ceiling(Q1 / Nup())  — or describe the rule in the note"],
+  notePh:["Note pour la construction (optionnel)","Nota para la construcción (opcional)","Build note (optional)"],
+  steps:["Étapes de production","Pasos de producción","Production steps"], noSteps:["Aucune étape : ce choix n'ajoute aucun coût de production.","Sin pasos: esta opción no añade coste de producción.","No steps: this choice adds no production cost."], addStep:["+ Étape de production","+ Paso de producción","+ Production step"], always:["toujours appliquées","siempre aplicados","always applied"],
+  matsOffered:["Matériaux proposés au client ({n} sélectionnés)","Materiales ofrecidos al cliente ({n} seleccionados)","Materials offered to the customer ({n} selected)"],
+  matsNotIn:["Les noms de cette catégorie ne sont pas dans le catalogue de l'appli. Saisissez-les ci-dessous.","Los nombres de esta categoría no están en el catálogo de la app. Escríbalos abajo.","This category's names are not in the app catalog. Type them below."],
+  matsOther:["Autres matériaux (saisie libre)","Otros materiales (texto libre)","Other materials (free text)"], matPh:["Nom exact du matériau PJM","Nombre exacto del material PJM","Exact PJM material name"], add:["Ajouter","Añadir","Add"], remove:["Retirer","Quitar","Remove"],
+  noFormats:["Aucun format : la feuille du matériau sera utilisée.","Sin formatos: se usará la hoja del material.","No formats: the material's sheet will be used."], removeFmt:["Retirer le format","Quitar el formato","Remove format"],
+  width:["largeur","ancho","width"], height:["hauteur","alto","height"], addFmt:["Ajouter le format","Añadir formato","Add format"],
+  fmtTitle:["Formats de feuille à comparer","Formatos de hoja a comparar","Sheet formats to compare"], fmtHint:["Une ligne Matériel par format sera créée, avec comparaison de la surface papier pour garder le format le plus économique.","Se creará una línea de Material por formato, comparando la superficie de papel para quedarse con el formato más económico.","One Material line per format will be created, comparing paper area to keep the cheapest format."],
+  m_mode:["Mode de sélection","Modo de selección","Selection mode"], m_specific:["Matériaux spécifiques","Materiales específicos","Specific materials"], m_category:["Tous les matériaux de la catégorie","Todos los materiales de la categoría","All materials in the category"], m_size:["Tous les matériaux de cette largeur et hauteur","Todos los materiales con este ancho y alto","All materials with this width and height"],
+  m_cat:["Catégorie PJM","Categoría PJM","PJM category"], m_impo:["Imposition / calcul","Imposición / cálculo","Imposition / calculation"], m_sides:["Impression","Impresión","Printing"], recto:["Recto seul","Solo una cara","Single-sided"], rv:["Recto-verso","Doble cara","Double-sided"], bleed:["Fond perdu (mm)","Sangrado (mm)","Bleed (mm)"],
+  choices:["{n} choix","{n} opciones","{n} choices"], stepsN:["{n} étapes","{n} pasos","{n} steps"], matsN:["{n} matériaux","{n} materiales","{n} materials"], chooseCat:["catégorie à choisir","categoría por elegir","category to choose"], fmtsN:["{n} formats","{n} formatos","{n} formats"],
+  conditional:["conditionnel","condicional","conditional"], up:["Monter","Subir","Move up"], down:["Descendre","Bajar","Move down"], fold:["Replier","Plegar","Collapse"], edit:["Modifier","Editar","Edit"],
+  c_name:["Nom du composant","Nombre del componente","Component name"], c_text:["Texte pour l'utilisateur","Texto para el usuario","Text for the user"], c_code:["Code","Código","Code"], c_codeHint:["Q1, Q2… utilisé dans les formules","Q1, Q2… usado en las fórmulas","Q1, Q2… used in formulas"],
+  c_unit:["Unité","Unidad","Unit"], c_min:["Minimum","Mínimo","Minimum"], c_max:["Maximum","Máximo","Maximum"], c_def:["Valeur par défaut","Valor por defecto","Default value"],
+  forceSel:["Forcer une sélection","Forzar una selección","Force a selection"], hidePub:["Masquer sur la vue publique des devis","Ocultar en la vista pública de presupuestos","Hide on public quote view"],
+  choiceName:["Nom du choix","Nombre de la opción","Choice name"], adjust:["Ajustement %","Ajuste %","Adjustment %"], adjustAria:["Ajustement global du travail en %","Ajuste global del trabajo en %","Global job adjustment in %"], choiceUp:["Monter le choix","Subir la opción","Move choice up"], addChoice:["+ Ajouter un choix","+ Añadir opción","+ Add choice"],
+  delCompQ:["Supprimer ce composant ?","¿Eliminar este componente?","Delete this component?"], delComp:["Supprimer le composant","Eliminar el componente","Delete component"],
+  formTitle:["Formulaire client et production","Formulario del cliente y producción","Customer form and production"],
+  formText:["Chaque composant devient une question du formulaire PJM. Pour chaque choix, indiquez la machine (ressource), le procédé et la base de calcul : Claude traduit ensuite en formules NCalc.","Cada componente se convierte en una pregunta del formulario PJM. Para cada opción indique la máquina (recurso), el proceso y la base de cálculo: Claude lo traduce luego a fórmulas NCalc.","Each component becomes a PJM form question. For each choice, pick the machine (resource), the process and the calculation basis: Claude then translates it into NCalc formulas."],
+  addComp:["Ajouter un composant","Añadir componente","Add component"],
+  delays:["Délais de production","Plazos de producción","Production lead times"], d_std:["Délai standard (jours ouvrés)","Plazo estándar (días laborables)","Standard lead time (working days)"], d_exp:["Délai express (jours ouvrés)","Plazo urgente (días laborables)","Express lead time (working days)"], d_sur:["Supplément express (%)","Recargo urgente (%)","Express surcharge (%)"], d_cut:["Heure limite de commande","Hora límite de pedido","Order cut-off time"], d_cutPh:["ex. 12h00","ej. 12:00","e.g. 12:00"],
+  d_rules:["Règles de délai","Reglas de plazo","Lead time rules"], d_rulesPh:["ex. +1 jour au-delà de 1000 ex. ; +2 jours pour le dos carré collé","ej. +1 día a partir de 1000 ej.; +2 días para encolado","e.g. +1 day above 1000 copies; +2 days for perfect binding"],
+  prices:["Prix","Precios","Prices"], p_min:["Prix minimum (€)","Precio mínimo (€)","Minimum price (€)"], p_max:["Prix maximum (€)","Precio máximo (€)","Maximum price (€)"], p_group:["Groupe de prix pour l'intégration","Grupo de precios para la integración","Price group for integration"], p_groupPh:["ex. Sur barême + 0 %","ej. Sur barême + 0 %","e.g. Sur barême + 0 %"], p_notes:["Remarques sur les marges","Observaciones sobre márgenes","Margin notes"],
+  buildTitle:["Instructions pour la construction","Instrucciones para la construcción","Build instructions"], buildLbl:["Tout ce que Claude doit savoir pour construire le moteur","Todo lo que Claude debe saber para construir el motor","Everything Claude needs to know to build the engine"], buildPh:["ex. Copier le moteur « Brochure numerique » comme base ; la couverture est toujours en 300 g","ej. Copiar el motor «Brochure numerique» como base; la cubierta siempre en 300 g","e.g. Use the “Brochure numerique” engine as a base; cover always 300 gsm"],
+  v_name:["Donnez un nom définitif au moteur.","Dé un nombre definitivo al motor.","Give the engine a final name."], v_q1:["Il manque la quantité Q1 (exemplaires).","Falta la cantidad Q1 (ejemplares).","Quantity Q1 (copies) is missing."], v_dup:["Deux composants Quantité ont le même code.","Dos componentes Cantidad tienen el mismo código.","Two Quantity components share the same code."],
+  v_noChoice:["« {c} » n'a aucun choix.","«{c}» no tiene opciones.","“{c}” has no choices."], v_step:["« {c} › {o} » : ressource ou procédé manquant.","«{c} › {o}»: falta recurso o proceso.","“{c} › {o}”: resource or process missing."], v_custom:["« {c} › {o} » : formule personnalisée sans formule ni note.","«{c} › {o}»: fórmula personalizada sin fórmula ni nota.","“{c} › {o}”: custom formula with no formula or note."],
+  v_cat:["« {c} » : choisissez une catégorie de matériaux.","«{c}»: elija una categoría de materiales.","“{c}”: choose a material category."], v_noMat:["« {c} » : aucun matériau sélectionné.","«{c}»: ningún material seleccionado.","“{c}”: no material selected."], v_q2:["« {c} » : l'imposition brochure suppose un nombre de pages (Q2).","«{c}»: la imposición de revista requiere un número de páginas (Q2).","“{c}”: booklet imposition needs a page count (Q2)."],
+  v_calc:["« {c} » : ressource ou procédé manquant.","«{c}»: falta recurso o proceso.","“{c}”: resource or process missing."], v_res:["Ressource « {r} » absente du catalogue PJM : elle devra être créée.","Recurso «{r}» ausente del catálogo PJM: habrá que crearlo.","Resource “{r}” is not in the PJM catalog: it must be created."], v_delay:["Délai standard non renseigné.","Plazo estándar sin indicar.","Standard lead time not set."], v_ok:["Fiche complète : prête à être construite dans PJM.","Ficha completa: lista para construir en PJM.","Sheet complete: ready to be built in PJM."],
+  noCost:["aucun coût","sin coste","no cost"], catQ:["catégorie ?","¿categoría?","category?"], modeX:["mode {m}","modo {m}","mode {m}"], bleedX:["fond perdu {b} mm","sangrado {b} mm","bleed {b} mm"], fmtsX:["formats {f}","formatos {f}","formats {f}"], hiddenIf:["masqué si {c} = {v}","oculto si {c} = {v}","hidden if {c} = {v}"],
+  rangeX:["{a} à {b} {u}","{a} a {b} {u}","{a} to {b} {u}"],
+  check:["Contrôle de la fiche","Control de la ficha","Sheet check"], readyPill:["Prête à construire","Lista para construir","Ready to build"], markReady:["Marquer prête à construire","Marcar lista para construir","Mark ready to build"], fixRed:["Corrigez les points en rouge d'abord","Corrija primero los puntos en rojo","Fix the red items first"],
+  askClaude:["Pour lancer la construction, demandez à Claude dans Cowork : « construis le moteur <b>{n}</b> depuis l'Atelier ».","Para lanzar la construcción, pida a Claude en Cowork: «construye el motor <b>{n}</b> desde el Taller».","To start the build, ask Claude in Cowork: “build the <b>{n}</b> engine from the Workshop”."],
+  described:["Moteur décrit","Motor descrito","Described engine"], specTitle:["Spécification transmise à Claude","Especificación enviada a Claude","Specification sent to Claude"], copyJson:["Copier le JSON","Copiar el JSON","Copy JSON"],
+  jsonCopied:["JSON copié","JSON copiado","JSON copied"], selCopy:["Sélectionné : copiez avec Ctrl+C","Seleccionado: copie con Ctrl+C","Selected: copy with Ctrl+C"], fmtNeed:["Indiquez la largeur et la hauteur de la feuille en mm.","Indique el ancho y el alto de la hoja en mm.","Enter the sheet width and height in mm."],
+  markedReady:["Fiche marquée prête à construire","Ficha marcada como lista para construir","Sheet marked ready to build"], updatedOther:["Fiche mise à jour par un autre utilisateur","Ficha actualizada por otro usuario","Sheet updated by another user"], dbLost:["Connexion à la base perdue","Conexión con la base perdida","Database connection lost"],
+  newQty:["Nouvelle quantité","Nueva cantidad","New quantity"], newOpt:["Nouvelle option","Nueva opción","New option"], choiceN:["Choix {n}","Opción {n}","Choice {n}"], newMat:["Nouveau matériel","Nuevo material","New material"], paper:["Papier","Papel","Paper"], newCalc:["Nouveau calcul","Nuevo cálculo","New calculation"],
+  lang:["Langue","Idioma","Language"],
+  version:["V1","V1","V1"],
+  st_maj:["À mettre à jour dans PJM","Por actualizar en PJM","To update in PJM"], st_import:["À importer depuis PJM","Por importar desde PJM","To import from PJM"],
+  pj_title:["Lien avec PJM","Vínculo con PJM","Link with PJM"],
+  pj_none:["Ce moteur n'existe pas encore dans PJM.","Este motor aún no existe en PJM.","This engine does not exist in PJM yet."],
+  pj_engine:["Moteur PJM","Motor PJM","PJM engine"], pj_open:["Ouvrir dans PJM","Abrir en PJM","Open in PJM"],
+  pj_built:["Construit le {d}","Construido el {d}","Built on {d}"], pj_imported:["Importé le {d}","Importado el {d}","Imported on {d}"], pj_mapped:["{n} éléments reliés à PJM","{n} elementos vinculados a PJM","{n} items linked to PJM"],
+  pj_update:["Demander la mise à jour dans PJM","Solicitar la actualización en PJM","Request update in PJM"],
+  pj_updateHint:["Après avoir modifié la fiche (ajout d'une option, d'un choix…), demandez la mise à jour : Claude compare la fiche au moteur PJM et n'applique que les différences. Rien n'est supprimé dans PJM sans confirmation.","Tras modificar la ficha (añadir una opción, una elección…), solicite la actualización: Claude compara la ficha con el motor PJM y solo aplica las diferencias. Nada se elimina en PJM sin confirmación.","After editing the sheet (new option, new choice…), request an update: Claude compares the sheet with the PJM engine and applies only the differences. Nothing is deleted in PJM without confirmation."],
+  pj_reimport:["Réimporter depuis PJM","Reimportar desde PJM","Re-import from PJM"],
+  pj_reimportHint:["À faire si le moteur a été modifié directement dans PJM, pour ne pas écraser ces changements.","Hágalo si el motor se modificó directamente en PJM, para no sobrescribir esos cambios.","Do this if the engine was changed directly in PJM, so those changes are not overwritten."],
+  pj_requested:["Demande enregistrée : demandez à Claude dans Cowork de traiter la fiche « {n} ».","Solicitud registrada: pida a Claude en Cowork que procese la ficha «{n}».","Request saved: ask Claude in Cowork to process the “{n}” sheet."],
+  imp_title:["Importer un moteur PJM existant","Importar un motor PJM existente","Import an existing PJM engine"],
+  imp_text:["Collez l'adresse du moteur dans PJM (page « Éditer le moteur produit »). Claude lira le moteur et remplira la fiche.","Pegue la dirección del motor en PJM (página «Editar el motor de producto»). Claude leerá el motor y rellenará la ficha.","Paste the engine address in PJM (“Edit product engine” page). Claude will read the engine and fill in the sheet."],
+  imp_url:["Adresse du moteur PJM","Dirección del motor PJM","PJM engine address"], imp_btn:["Créer la fiche d'import","Crear la ficha de importación","Create import sheet"],
+  imp_bad:["Adresse non reconnue : elle doit contenir /ProductEngines/Edit/ suivi de l'identifiant du moteur.","Dirección no reconocida: debe contener /ProductEngines/Edit/ seguido del identificador del motor.","Address not recognised: it must contain /ProductEngines/Edit/ followed by the engine id."],
+  imp_name:["Moteur importé {id}","Motor importado {id}","Imported engine {id}"],
+  imp_wait:["Cette fiche attend l'import du moteur PJM. Demandez à Claude dans Cowork : « importe le moteur de la fiche {n} ».","Esta ficha espera la importación del motor PJM. Pida a Claude en Cowork: «importa el motor de la ficha {n}».","This sheet is waiting for the PJM engine import. Ask Claude in Cowork: “import the engine for sheet {n}”."],
+  set_pjm:["Adresse du PJM du client","Dirección del PJM del cliente","Customer PJM address"],
+  set_pjmHint:["Adresse de base de l'instance PJM (ex. https://xxx.printjobmanager.com). Claude l'utilise pour lire le catalogue et construire les moteurs.","Dirección base de la instancia PJM (ej. https://xxx.printjobmanager.com). Claude la usa para leer el catálogo y construir los motores.","Base address of the PJM instance (e.g. https://xxx.printjobmanager.com). Claude uses it to read the catalog and build engines."],
+  set_pjmMissing:["Adresse PJM non renseignée : un admin doit la saisir dans l'écran admin.","Dirección PJM no indicada: un admin debe introducirla en la pantalla de administración.","PJM address not set: an admin must enter it in the admin screen."],
+  t_title:["Cas de test","Casos de prueba","Test cases"],
+  t_text:["Décrivez quelques commandes types et, si vous le connaissez, le prix attendu. Claude les relance après chaque construction ou mise à jour et signale tout écart.","Describa algunos pedidos típicos y, si lo conoce, el precio esperado. Claude los vuelve a ejecutar tras cada construcción o actualización y señala cualquier diferencia.","Describe a few typical orders and, if known, the expected price. Claude reruns them after each build or update and flags any difference."],
+  t_add:["+ Ajouter un cas de test","+ Añadir un caso de prueba","+ Add test case"], t_label:["Nom du cas","Nombre del caso","Case name"], t_expected:["Prix HT attendu (€)","Precio sin IVA esperado (€)","Expected price excl. VAT (€)"],
+  t_last:["Dernier résultat : {p} € le {d}","Último resultado: {p} € el {d}","Last result: €{p} on {d}"], t_never:["Jamais exécuté","Nunca ejecutado","Never run"],
+  t_ok:["Conforme","Conforme","Matches"], t_diff:["Écart","Diferencia","Difference"], t_del:["Retirer ce cas","Quitar este caso","Remove this case"], t_none:["Aucun cas de test.","Ningún caso de prueba.","No test cases."],
+  t_any:["— au choix —","— cualquiera —","— any —"], t_defName:["Cas {n}","Caso {n}","Case {n}"],
+  l_fr:["Français","Francés","French"], l_es:["Espagnol","Español","Spanish"], l_en:["Anglais","Inglés","English"], l_browser:["Langue du navigateur","Idioma del navegador","Browser language"],
+  adm_lang:["Langue par défaut de l'Atelier","Idioma por defecto del Taller","Workshop default language"],
+  adm_langHint:["Utilisée pour toute personne qui n'a pas encore choisi sa langue avec le sélecteur. Chacun peut ensuite en changer.","Se usa para quien aún no haya elegido su idioma con el selector. Cada uno puede cambiarlo después.","Used for anyone who has not picked a language with the selector yet. Everyone can change it afterwards."],
+  adm_langSaved:["Langue par défaut enregistrée","Idioma por defecto guardado","Default language saved"],
+  fl_badge:["Fiche en {l}","Ficha en {l}","Sheet in {l}"],
+  fl_mismatch:["Cette fiche est rédigée en {f}. Le moteur PJM sera construit dans la langue de la fiche.","Esta ficha está redactada en {f}. El motor PJM se construirá en el idioma de la ficha.","This sheet is written in {f}. The PJM engine will be built in the sheet's language."],
+  fl_translate:["Traduire la fiche en {l}","Traducir la ficha al {l}","Translate the sheet into {l}"], fl_working:["Traduction en cours…","Traduciendo…","Translating…"],
+  fl_done:["Fiche traduite en {l}","Ficha traducida al {l}","Sheet translated into {l}"], fl_err:["Traduction impossible : {e}","No se pudo traducir: {e}","Translation failed: {e}"],
+  fl_noSample:["La traduction automatique n'est pas disponible dans cette vue.","La traducción automática no está disponible en esta vista.","Automatic translation is not available in this view."],
+  fl_lang:["Langue de la fiche et du moteur PJM","Idioma de la ficha y del motor PJM","Sheet and PJM engine language"],
+  tab_regles:["Règles & incompatibilités","Reglas e incompatibilidades","Rules & incompatibilities"],
+  dl_title:["Délais de production proposés au client","Plazos de producción ofrecidos al cliente","Production lead times offered to the customer"],
+  dl_text:["Chaque délai devient un choix d'un composant Option dans PJM, avec une marge (Ajustement global du travail %).","Cada plazo se convierte en una opción de un componente Opciones en PJM, con un margen (Ajuste global del trabajo %).","Each lead time becomes a choice of an Options component in PJM, with a markup (global job adjustment %)."],
+  dl_enable:["Proposer un choix de délai au client","Ofrecer al cliente una elección de plazo","Offer the customer a lead-time choice"],
+  dl_label:["Délai","Plazo","Lead time"], dl_markup:["Marge %","Margen %","Markup %"], dl_add:["+ Ajouter un délai","+ Añadir plazo","+ Add lead time"], dl_del:["Retirer ce délai","Quitar este plazo","Remove this lead time"],
+  dl_first:["Le 1er délai de la liste est celui appliqué par défaut.","El 1er plazo de la lista es el que se aplica por defecto.","The first lead time in the list is the default."],
+  dl_none:["Aucun délai : ajoutez-en au moins un.","Sin plazos: añada al menos uno.","No lead times: add at least one."],
+  r_title:["Incompatibilités entre les choix","Incompatibilidades entre opciones","Incompatibilities between choices"],
+  r_text:["Pour chaque choix possible, indiquez ce qui ne doit plus être proposé au client. Claude traduit ces réponses en suppressions PJM (ou en composants dupliqués quand seuls certains choix sont retirés).","Para cada opción posible, indique lo que ya no debe ofrecerse al cliente. Claude traduce estas respuestas en supresiones PJM (o en componentes duplicados cuando solo se quitan algunas opciones).","For each possible choice, state what must no longer be offered. Claude turns these answers into PJM suppressions (or duplicated components when only some choices are removed)."],
+  r_q:["Quand le client choisit « {v} » dans « {c} »…","Cuando el cliente elige «{v}» en «{c}»…","When the customer picks “{v}” in “{c}”…"],
+  r_hide:["ne plus montrer la question","ya no mostrar la pregunta","stop showing the question"],
+  r_restrict:["retirer seulement certains choix","quitar solo algunas opciones","remove only some choices"],
+  r_count:["{n} règles","{n} reglas","{n} rules"],
+  r_noOpts:["Ajoutez d'abord des composants Options ou Matériel dans le formulaire.","Añada primero componentes Opciones o Material en el formulario.","First add Options or Material components to the form."],
+  r_auto:["Règle automatique : tant qu'une option est sur « --Sélectionner-- », on applique les mêmes règles que pour son 1er choix.","Regla automática: mientras una opción esté en «--Seleccionar--», se aplican las mismas reglas que para su 1ª opción.","Automatic rule: while an option is on “--Select--”, the same rules as its first choice apply."],
+  r_other:["Autres règles métier","Otras reglas de negocio","Other business rules"], r_otherPh:["ex. Dos carré collé à partir de 40 pages ; pas de pelliculage sur papier de moins de 115 g","ej. Encolado a partir de 40 páginas; sin plastificado en papel de menos de 115 g","e.g. Perfect binding from 40 pages; no lamination on paper under 115 gsm"],
+  r_otherHint:["Règles qui dépendent d'une quantité (Q1, Q2…) : Claude les traduit en formules ou en limites min / max.","Reglas que dependen de una cantidad (Q1, Q2…): Claude las traduce en fórmulas o límites mín. / máx.","Rules that depend on a quantity (Q1, Q2…): Claude turns them into formulas or min / max limits."],
+  r_restrictOf:["choix retirés de « {c} »","opciones quitadas de «{c}»","choices removed from “{c}”"],
+  r_when:["si {c} = {v}","si {c} = {v}","if {c} = {v}"],
+  v_restrict:["« {c} » : tous ses choix seraient retirés quand {x} = {v} — masquez plutôt la question.","«{c}»: se quitarían todas sus opciones cuando {x} = {v}; mejor ocultar la pregunta.","“{c}”: all its choices would be removed when {x} = {v} — hide the question instead."],
+  delayComp:["Délais de production","Plazos de producción","Production lead times"],
+  dayPrefix:["J+","D+","D+"],
+  g_title:["Questions guidées","Preguntas guiadas","Guided questions"],
+  g_text:["Répondez à ces quelques questions sur votre façon de produire. Elles dépendent du type de produit et de ce que contient la fiche.","Responda a estas pocas preguntas sobre su forma de producir. Dependen del tipo de producto y de lo que contiene la ficha.","Answer these few questions about how you produce. They depend on the product type and on what the sheet contains."],
+  g_none:["Aucune question guidée pour cette fiche.","Ninguna pregunta guiada para esta ficha.","No guided questions for this sheet."],
+  g_yes:["Oui","Sí","Yes"], g_no:["Non","No","No"], g_noPapers:["Ajoutez d'abord des papiers dans le formulaire.","Añada primero papeles en el formulario.","First add papers to the form."],
+  g_effect:["Effet dans PJM : {e}","Efecto en PJM: {e}","Effect in PJM: {e}"], g_answered:["{a} / {n} répondues","{a} / {n} respondidas","{a} / {n} answered"],
+  fr_title:["Vos règles en une phrase","Sus reglas en una frase","Your rules in one sentence"],
+  fr_text:["Écrivez ce que les questions ne couvrent pas, une règle par ligne, comme vous l'expliqueriez à un collègue.","Escriba lo que las preguntas no cubren, una regla por línea, como se lo explicaría a un compañero.","Write what the questions do not cover, one rule per line, as you would explain it to a colleague."],
+  fr_ph:["ex. On ne pellicule pas sur du papier de 135 g","ej. No se plastifica en papel de 135 g","e.g. No lamination on 135 gsm paper"],
+  fr_add:["Ajouter la règle","Añadir la regla","Add rule"], fr_rephrase:["Faire reformuler","Reformular","Rephrase"], fr_working:["Claude lit votre règle…","Claude está leyendo su regla…","Claude is reading your rule…"],
+  fr_understood:["Claude a compris :","Claude ha entendido:","Claude understood:"], fr_ok:["C'est bien ça","Es correcto","That's right"], fr_fix:["Corriger","Corregir","Fix"],
+  fr_validated:["Validée","Validada","Confirmed"], fr_pending:["Sera relue par Claude au moment de la construction.","Claude la revisará en el momento de la construcción.","Claude will review it at build time."],
+  fr_question:["Question de Claude : {q}","Pregunta de Claude: {q}","Claude asks: {q}"], fr_err:["Reformulation impossible pour l'instant : {e}","No se puede reformular ahora: {e}","Could not rephrase right now: {e}"],
+  fr_suggest:["Proposer comme question guidée","Proponer como pregunta guiada","Suggest as a guided question"], fr_suggested:["Proposée à Aleyant","Propuesta a Aleyant","Suggested to Aleyant"], fr_sugDone:["Merci : la proposition est envoyée à l'équipe Aleyant.","Gracias: la propuesta se ha enviado al equipo de Aleyant.","Thanks: the suggestion was sent to the Aleyant team."],
+  fr_del:["Retirer la règle","Quitar la regla","Remove rule"],
+  ex_title:["Mode expert : grille des incompatibilités","Modo experto: tabla de incompatibilidades","Expert mode: incompatibility grid"],
+  adm_btn:["Questions guidées (admin)","Preguntas guiadas (admin)","Guided questions (admin)"],
+  adm_title:["Banque de questions guidées","Banco de preguntas guiadas","Guided question bank"],
+  adm_text:["Ces questions s'affichent dans l'onglet Règles des fiches concernées. Modifiez-les ici : elles sont mises à jour immédiatement pour tous.","Estas preguntas aparecen en la pestaña Reglas de las fichas correspondientes. Modifíquelas aquí: se actualizan al instante para todos.","These questions appear in the Rules tab of matching sheets. Edit them here: changes apply to everyone at once."],
+  adm_new:["+ Nouvelle question","+ Nueva pregunta","+ New question"], adm_save:["Enregistrer","Guardar","Save"], adm_saved:["Question enregistrée","Pregunta guardada","Question saved"],
+  adm_active:["Active","Activa","Active"], adm_types:["Types de produit","Tipos de producto","Product types"], adm_all:["Tous","Todos","All"],
+  adm_atype:["Type de réponse","Tipo de respuesta","Answer type"], at_yesno:["Oui / non","Sí / no","Yes / no"], at_number:["Nombre","Número","Number"], at_size:["Largeur × hauteur","Ancho × alto","Width × height"], at_materials:["Choix de papiers de la fiche","Selección de papeles de la ficha","Pick papers from the sheet"], at_text:["Texte libre","Texto libre","Free text"],
+  adm_unit:["Unité","Unidad","Unit"], adm_if:["Afficher seulement si la fiche contient (mots, séparés par |)","Mostrar solo si la ficha contiene (palabras separadas por |)","Show only if the sheet contains (words separated by |)"],
+  adm_ifHint:["Cherché dans les noms des questions, choix, papiers et procédés. Vide = toujours.","Se busca en los nombres de preguntas, opciones, papeles y procesos. Vacío = siempre.","Matched against question, choice, paper and process names. Empty = always."],
+  adm_q:["Question ({l})","Pregunta ({l})","Question ({l})"], adm_effect:["Effet dans PJM ({l})","Efecto en PJM ({l})","Effect in PJM ({l})"], adm_order:["Ordre","Orden","Order"],
+  adm_sug:["Propositions des utilisateurs","Propuestas de los usuarios","User suggestions"], adm_noSug:["Aucune proposition en attente.","Ninguna propuesta pendiente.","No pending suggestions."],
+  adm_accept:["Accepter","Aceptar","Accept"], adm_reject:["Refuser","Rechazar","Reject"], adm_from:["depuis « {n} »","desde «{n}»","from “{n}”"], adm_back:["← Retour aux fiches","← Volver a las fichas","← Back to sheets"],
+  adm_missing:["Traduction manquante","Falta traducción","Missing translation"], adm_fail:["Enregistrement refusé : réservé aux éditeurs","Guardado rechazado: reservado a editores","Save refused: editors only"]
+};
+const browserLang = () => { const n=(navigator.language||"fr").slice(0,2).toLowerCase(); return LANGS.includes(n)?n:"en"; };
+const personalLang = () => { try{ const s=localStorage.getItem("pjm.lang"); if(LANGS.includes(s)) return s; }catch(e){} return null; };
+let ADMIN_LANG = null;
+let LANG = personalLang() || browserLang();
+const t = (k,vars) => { const row=T[k]; let s = row ? row[LANGS.indexOf(LANG)] : k; if(vars) for(const v in vars) s=s.split("{"+v+"}").join(vars[v]); return s; };
+const LOCALE = () => ({fr:"fr-FR",es:"es-ES",en:"en-GB"})[LANG];
+
+/* ---------- constantes métier ---------- */
+const PJM_CATEGORIES = ["1-Calendriers","2-Carterie","3-Dépliant","4-Enveloppes","5-Flyers / poster","6-Grand format","7-Livres et magazine","Textile"];
+const STATUS_KEYS = ["brouillon","pret","construction","cree","maj","import"];
+let PJM_URL = "";
+const CTYPES = ["quantity","option","material","calculation"];
+const BASIS_KEYS = ["feuilles","exemplaires","pages","cahiers","m2","ml","forfait","custom"];
+const IMPO_KEYS = ["flat","brochure4","feuillets","surface"];
+const PT_KEYS = ["brochure","flyer","grandformat","cartes"];
+const PT_CAT = {brochure:"7-Livres et magazine", flyer:"5-Flyers / poster", grandformat:"6-Grand format", cartes:"2-Carterie"};
+const ICONS = {
+  brochure:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 3.5C6.5 2.5 4 2.3 2 2.8v10c2-.5 4.5-.3 6 .7 1.5-1 4-1.2 6-.7v-10c-2-.5-4.5-.3-6 .7zM8 3.5v10"/></svg>',
+  flyer:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="1.5" width="9" height="13" rx="1"/><path d="M5.5 5h5M5.5 7.5h5M5.5 10h3"/></svg>',
+  grandformat:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="3.5" width="13" height="8"/><circle cx="2.8" cy="4.8" r=".6"/><circle cx="13.2" cy="4.8" r=".6"/><circle cx="2.8" cy="10.2" r=".6"/><circle cx="13.2" cy="10.2" r=".6"/></svg>',
+  cartes:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4" width="13" height="8" rx="1"/><path d="M4 7h4M4 9h6"/></svg>'
+};
+const uid = () => Math.random().toString(36).slice(2,10);
+const step = (resource="", process="", basis="feuilles", note="") => ({id:uid(), resource, process, basis, formula:"", note});
+const opt = (name, steps=[], adjust=0) => ({id:uid(), name, adjust, steps, materials:[]});
+const q = (code, name, userText, unit, min, max, def) => ({id:uid(), type:"quantity", code, name, userText, unit, min, max, def, hideWhen:[]});
+const o = (name, userText, options, extra={}) => ({id:uid(), type:"option", name, userText, forceSelect:true, hidePublic:false, options, hideWhen:[], ...extra});
+const m = (name, userText, extra={}) => ({id:uid(), type:"material", name, userText, hidePublic:false, mode:"specific", category:"", materials:[], sheetFormats:[], bleed:6, sides:"rv", imposition:"flat", hideWhen:[], ...extra});
+const c = (name, userText, steps) => ({id:uid(), type:"calculation", name, userText, steps, materials:[], hideWhen:[]});
+
+/* textes des modèles, par langue : [fr, es, en] */
+const W = {
+  copies:["Quantité d'exemplaires","Cantidad de ejemplares","Number of copies"], ex:["ex.","ej.","copies"],
+  pagesT:["Nombre de pages total","Número total de páginas","Total page count"], pagesU:["Nombre de pages total, couverture incluse (multiple de 4)","Número total de páginas, cubierta incluida (múltiplo de 4)","Total page count, cover included (multiple of 4)"], pages:["pages","páginas","pages"],
+  width:["Largeur","Ancho","Width"], height:["Hauteur","Alto","Height"], widthMm:["Largeur du document en mm","Ancho del documento en mm","Document width in mm"], heightMm:["Hauteur du document en mm","Alto del documento en mm","Document height in mm"],
+  widthCm:["Largeur en cm","Ancho en cm","Width in cm"], heightCm:["Hauteur en cm","Alto en cm","Height in cm"],
+  diffCover:["Couverture différente ?","¿Cubierta diferente?","Different cover?"], diffCoverU:["Couverture différente de l'intérieur ?","¿Cubierta diferente del interior?","Cover different from the inside?"], yes:["Oui","Sí","Yes"], no:["Non","No","No"],
+  inPrint:["Impression intérieur","Impresión interior","Inside printing"], inPrintU:["Type d'impression de l'intérieur","Tipo de impresión del interior","Inside printing type"],
+  cmykDs:["Quadri recto-verso","Cuatricromía doble cara","CMYK double-sided"], bwDs:["Noir & blanc recto-verso","Blanco y negro doble cara","Black & white double-sided"], cmykSs:["Quadri recto","Cuatricromía una cara","CMYK single-sided"],
+  inPaper:["Papier intérieur","Papel interior","Inside paper"], covPrint:["Impression couverture","Impresión cubierta","Cover printing"], covPrintU:["Impression de la couverture","Impresión de la cubierta","Cover printing"],
+  covPaper:["Papier couverture","Papel cubierta","Cover paper"], covPaperU:["Papier de la couverture","Papel de la cubierta","Cover paper"],
+  binding:["Reliure","Encuadernación","Binding"], bindingU:["Type de reliure","Tipo de encuadernación","Binding type"], saddle:["Piqûre à cheval 2 points","Grapado a caballete 2 grapas","Saddle stitch 2 staples"], perfect:["Dos carré collé","Encolado (rústica)","Perfect binding"],
+  lam:["Pelliculage","Plastificado","Lamination"], lamCov:["Pelliculage couverture","Plastificado cubierta","Cover lamination"], lamCovU:["Pelliculage de la couverture","Plastificado de la cubierta","Cover lamination"],
+  noLam:["Sans pelliculage","Sin plastificar","No lamination"], matte1:["Mat 1 face","Mate 1 cara","Matte 1 side"], matte2:["Mat 2 faces","Mate 2 caras","Matte 2 sides"], soft1:["Soft touch 1 face","Soft touch 1 cara","Soft touch 1 side"], soft2:["Soft touch 2 faces","Soft touch 2 caras","Soft touch 2 sides"],
+  cut:["Massicot","Guillotina","Trimming"], cutBro:["Massicot brochure","Guillotina revista","Booklet trimming"], cutting:["Coupe","Corte","Cutting"], cutCards:["Massicot cartes","Guillotina tarjetas","Card trimming"], cutCardsU:["Coupe des cartes","Corte de tarjetas","Card cutting"],
+  printing:["Impression","Impresión","Printing"], printType:["Type d'impression","Tipo de impresión","Printing type"], fold:["Pliage","Plegado","Folding"], noFold:["Sans pli","Sin plegado","No fold"], fold2:["2 volets","Díptico","2 panels"], fold3:["3 volets","Tríptico","3 panels"],
+  qty:["Quantité","Cantidad","Quantity"], support:["Support","Soporte","Substrate"], supportU:["Support d'impression","Soporte de impresión","Print substrate"],
+  quality:["Qualité d'impression","Calidad de impresión","Print quality"], prod:["Production","Producción","Production"], qual:["Qualité","Calidad","Quality"],
+  finish:["Finition","Acabado","Finishing"], finishU:["Finition des bords","Acabado de bordes","Edge finishing"], noFinish:["Sans finition","Sin acabado","No finishing"], eyelets:["Œillets tous les 50 cm","Ojales cada 50 cm","Grommets every 50 cm"], eyeletsNote:["1 œillet tous les 50 cm sur le périmètre","1 ojal cada 50 cm en el perímetro","1 grommet every 50 cm around the edge"], pockets:["Fourreaux","Bolsillos (fundas)","Pole pockets"],
+  pack:["Emballage","Embalaje","Packaging"], paper:["Papier","Papel","Paper"], cards:["Quantité de cartes","Cantidad de tarjetas","Number of cards"], round:["Coins arrondis","Esquinas redondeadas","Rounded corners"]
+};
+const w = k => W[k][LANGS.indexOf(LANG)];
+
+function template(tp){
+  if(tp==="brochure"){
+    const couv = o(w("diffCover"),w("diffCoverU"),[opt(w("yes")),opt(w("no"))]);
+    const hideNo=[{component:couv.id, value:w("no")}];
+    return [
+      q("Q1",w("copies"),w("copies"),w("ex"),1,99999,100),
+      q("Q2",w("pagesT"),w("pagesU"),w("pages"),8,200,16),
+      q("Q3",w("width"),w("widthMm"),"mm",50,420,210),
+      q("Q4",w("height"),w("heightMm"),"mm",50,420,297),
+      couv,
+      o(w("inPrint"),w("inPrintU"),[opt(w("cmykDs"),[step("Presse numérique couleur","Couleur 2 faces","feuilles")]),opt(w("bwDs"),[step("Presse numérique couleur","N&B 2 faces","feuilles")])]),
+      m(w("inPaper"),w("inPaper"),{imposition:"brochure4"}),
+      {...o(w("covPrint"),w("covPrintU"),[opt(w("cmykSs"),[step("Presse numérique couleur","Couleur 1 face","feuilles")]),opt(w("cmykDs"),[step("Presse numérique couleur","Couleur 2 faces","feuilles")])]), hideWhen:hideNo.map(x=>({...x}))},
+      m(w("covPaper"),w("covPaperU"),{imposition:"flat", hideWhen:hideNo.map(x=>({...x}))}),
+      o(w("binding"),w("bindingU"),[opt(w("saddle"),[step("Picure à cheval","Agraffage 2 points","exemplaires")]),opt(w("perfect"),[step("Dos carré collé","Dos carré collé","exemplaires")])]),
+      o(w("lamCov"),w("lamCovU"),[opt(w("noLam")),opt(w("matte1"),[step("Pelliculage","Mat 1 face","feuilles")]),opt(w("soft1"),[step("Pelliculage","Mat soft touch 1 face","feuilles")])],{forceSelect:false}),
+      c(w("cut"),w("cutBro"),[step("Massicot","Massicot de revues","exemplaires")])
+    ];
+  }
+  if(tp==="flyer") return [
+    q("Q1",w("copies"),w("copies"),w("ex"),1,99999,500),
+    q("Q3",w("width"),w("widthMm"),"mm",50,700,148),
+    q("Q4",w("height"),w("heightMm"),"mm",50,1000,210),
+    o(w("printing"),w("printType"),[opt(w("cmykSs"),[step("Presse numérique couleur","Couleur 1 face","feuilles")]),opt(w("cmykDs"),[step("Presse numérique couleur","Couleur 2 faces","feuilles")])]),
+    m(w("paper"),w("paper"),{imposition:"flat"}),
+    o(w("lam"),w("lam"),[opt(w("noLam")),opt(w("matte1"),[step("Pelliculage","Mat 1 face","feuilles")]),opt(w("matte2"),[step("Pelliculage","Mat 2 faces","feuilles")])],{forceSelect:false}),
+    o(w("fold"),w("fold"),[opt(w("noFold")),opt(w("fold2"),[step("Plegados","Diptico","exemplaires")]),opt(w("fold3"),[step("Plegados","Tríptico","exemplaires")])],{forceSelect:false}),
+    c(w("cut"),w("cutting"),[step("Massicot","Massicot format personalisé","feuilles")])
+  ];
+  if(tp==="grandformat") return [
+    q("Q1",w("qty"),w("qty"),w("ex"),1,999,1),
+    q("Q2",w("width"),w("widthCm"),"cm",10,500,100),
+    q("Q3",w("height"),w("heightCm"),"cm",10,500,100),
+    m(w("support"),w("supportU"),{mode:"category", imposition:"surface", sides:"recto", bleed:0}),
+    o(w("quality"),w("quality"),[opt(w("prod"),[step("03. HP LATEX 2000","Production (6p/110%)","m2")]),opt(w("qual"),[step("03. HP LATEX 2000","Qualité (12 p/120%)","m2")])]),
+    o(w("finish"),w("finishU"),[opt(w("noFinish")),opt(w("eyelets"),[step("Oeuillets","Oeuillets","custom",w("eyeletsNote"))]),opt(w("pockets"),[step("32. IMPULSA","Fourreaux couture","ml")])],{forceSelect:false}),
+    c(w("pack"),w("pack"),[step("61. EMBALLAGE","Emballage","forfait")])
+  ];
+  return [
+    q("Q1",w("cards"),w("cards"),w("ex"),50,10000,250),
+    q("Q3",w("width"),w("widthMm"),"mm",40,210,85),
+    q("Q4",w("height"),w("heightMm"),"mm",40,210,55),
+    o(w("printing"),w("printType"),[opt(w("cmykSs"),[step("Presse numérique couleur","Couleur 1 face","feuilles")]),opt(w("cmykDs"),[step("Presse numérique couleur","Couleur 2 faces","feuilles")])]),
+    m(w("paper"),w("paper"),{imposition:"flat"}),
+    o(w("lam"),w("lam"),[opt(w("noLam")),opt(w("matte2"),[step("Pelliculage","Mat 2 faces","feuilles")]),opt(w("soft2"),[step("Pelliculage","Mat soft touch 2 faces","feuilles")])],{forceSelect:false}),
+    o(w("round"),w("round"),[opt(w("no")),opt(w("yes"),[step("Coins arrondis","Coins arrondis","exemplaires")])],{forceSelect:false}),
+    c(w("cutCards"),w("cutCardsU"),[step("Massicot","Massicot cartes de visite","feuilles")])
+  ];
+}
+function defaultDelays(){ return {enabled:true, name:t("delayComp"), userText:t("delayComp"), choices:[{id:uid(),label:t("dayPrefix")+"5",markup:0},{id:uid(),label:t("dayPrefix")+"3",markup:15},{id:uid(),label:t("dayPrefix")+"1",markup:25}], notes:""}; }
+function normalize(b){
+  if(!b.delays||!Array.isArray(b.delays.choices)){ const old=b.delays||{}; b.delays=defaultDelays(); if(old.notes) b.delays.notes=old.notes; }
+  if(!Array.isArray(b.restrictions)) b.restrictions=[];
+  if(typeof b.rulesNotes!=="string") b.rulesNotes="";
+  if(!b.guided||typeof b.guided!=="object") b.guided={};
+  if(!Array.isArray(b.freeRules)) b.freeRules=[];
+  if(!LANGS.includes(b.language)) b.language="fr";
+  if(!Array.isArray(b.tests)) b.tests=[];
+  return b;
+}
+function newBrief(tp, name){
+  const now = new Date().toISOString();
+  return {name:name||t("newEngine",{p:t("pt_"+tp)}), productType:tp, status:"brouillon", pjmCategory:PT_CAT[tp], description:"", language:LANG,
+    priceMin:"", priceMax:"", quantityComponent:"Q1", multiQty:false,
+    components:template(tp),
+    delays:defaultDelays(), restrictions:[], rulesNotes:"", guided:{}, freeRules:[], tests:[],
+    margin:{pricingGroup:"", notes:""},
+    notes:"", createdAt:now, updatedAt:now, schema:1};
+}
+
+/* ---------- état ---------- */
+const S = {db:null, user:null, uidSelf:null, briefs:new Map(), sel:null, tab:"produit", draft:null, dirty:false, saving:false,
+  catalog:{resources:[], categories:[], readAt:null}, questions:[], suggestions:[], isAdmin:false, sample:null, view:"brief", busy:new Set(), local:false, creating:null, confirmDel:null, matOpen:new Set()};
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+function toast(msg){const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>el.hidden=true,2200);}
+function setSave(s,key,vars){const el=$("#saveState"); el.dataset.s=s; el.dataset.k=key||""; el.textContent=key?t(key,vars):"";}
+function getP(obj,path){return path.split(".").reduce((a,k)=>a==null?a:a[k],obj);}
+function setP(obj,path,val){const ks=path.split("."); let x=obj; for(let i=0;i<ks.length-1;i++){ if(x[ks[i]]==null||typeof x[ks[i]]!=="object") x[ks[i]]={}; x=x[ks[i]]; } x[ks.at(-1)]=val;}
+
+/* ---------- persistance ---------- */
+let saveTimer=null;
+function touch(){ if(!S.draft) return; S.dirty=true; S.draft.updatedAt=new Date().toISOString(); setSave("saving","saving"); clearTimeout(saveTimer); saveTimer=setTimeout(flush,700); renderList(); }
+async function flush(){
+  if(!S.draft||!S.dirty) return;
+  const id=S.sel, body=JSON.parse(JSON.stringify(S.draft));
+  if(S.uidSelf) body.updatedBy=S.uidSelf;
+  S.dirty=false;
+  if(S.local){ S.briefs.set(id,body); setSave("saved","savedLocal"); return; }
+  if(S.saving){ S.dirty=true; clearTimeout(saveTimer); saveTimer=setTimeout(flush,400); return; }
+  S.saving=true; setSave("saving","saving2");
+  try{ await S.db.doc("briefs/"+id).set(body); setSave("saved","saved"); }
+  catch(e){ S.dirty=true; const ro=e&&e.code==="invalid_argument"; setSave("error", ro?"readOnly":"saveFail"); if(!ro){ clearTimeout(saveTimer); saveTimer=setTimeout(flush,2500);} }
+  finally{ S.saving=false; }
+}
+async function createBrief(tp,name){
+  const id = "b"+Date.now().toString(36)+uid().slice(0,4);
+  const b = newBrief(tp,name);
+  if(S.uidSelf){ b.createdBy=S.uidSelf; b.updatedBy=S.uidSelf; }
+  S.briefs.set(id,b);
+  if(!S.local){ try{ await S.db.doc("briefs/"+id).set(b);}catch(e){ toast(t("createFail",{e:(e&&e.message)||"error"})); S.briefs.delete(id); return; } }
+  S.creating=null; select(id,"formulaire"); toast(t("created",{p:t("pt_"+tp)}));
+}
+async function createImport(engineId,url){
+  const id="b"+Date.now().toString(36)+uid().slice(0,4); const now=new Date().toISOString();
+  const b={name:t("imp_name",{id:engineId.slice(0,8)}), productType:"brochure", status:"import", pjmCategory:"", description:"", language:LANG, priceMin:"", priceMax:"", quantityComponent:"Q1", multiQty:false, components:[], delays:{...defaultDelays(), enabled:false, choices:[]}, restrictions:[], rulesNotes:"", guided:{}, freeRules:[], tests:[], margin:{pricingGroup:"",notes:""}, notes:"", pjm:{engineId, url}, createdAt:now, updatedAt:now, schema:1};
+  if(S.uidSelf){ b.createdBy=S.uidSelf; b.updatedBy=S.uidSelf; }
+  S.briefs.set(id,b);
+  if(!S.local){ try{ await S.db.doc("briefs/"+id).set(b);}catch(e){ toast(t("createFail",{e:(e&&e.message)||"error"})); S.briefs.delete(id); return; } }
+  S.creating=null; select(id,"produit"); toast(t("pj_requested",{n:b.name}));
+}
+async function deleteBrief(id){
+  S.briefs.delete(id);
+  if(!S.local){ try{ await S.db.doc("briefs/"+id).delete(); }catch(e){ toast(t("delFail")); } }
+  S.sel=null; S.draft=null; S.confirmDel=null; renderList(); renderView();
+}
+function select(id,tab){
+  if(S.dirty) flush();
+  S.sel=id; S.draft=normalize(JSON.parse(JSON.stringify(S.briefs.get(id)))); S.tab=tab||"produit"; S.creating=null; S.confirmDel=null;
+  try{ localStorage.setItem("pjm.sel",id);}catch(e){}
+  renderList(); renderView(); window.scrollTo(0,0);
+}
+
+/* ---------- catalogue ---------- */
+function resGroups(){
+  const g={}; for(const r of S.catalog.resources){ (g[r.dept]=g[r.dept]||[]).push(r); }
+  return Object.keys(g).sort((a,b)=>a.localeCompare(b,"fr")).map(k=>[k,g[k]]);
+}
+function resOptions(cur){
+  let h='<option value="">'+t("resPh")+'</option>'; let found=!cur;
+  for(const [dept,list] of resGroups()){
+    h+='<optgroup label="'+esc(dept)+'">';
+    for(const r of list){ if(r.name===cur) found=true; h+='<option value="'+esc(r.name)+'"'+(r.name===cur?" selected":"")+'>'+esc(r.name)+(r.kind==="Travail manuel"?" · "+t("manual"):"")+'</option>'; }
+    h+='</optgroup>';
+  }
+  if(!found) h+='<option value="'+esc(cur)+'" selected>'+esc(cur)+' ('+t("toCreate")+')</option>';
+  return h;
+}
+function procOptions(resource,cur){
+  const r=S.catalog.resources.find(x=>x.name===resource);
+  let h='<option value="">'+t("procPh")+'</option>'; let found=!cur;
+  if(r) for(const p of r.processes){ if(p===cur) found=true; h+='<option'+(p===cur?" selected":"")+'>'+esc(p)+'</option>'; }
+  if(!found) h+='<option value="'+esc(cur)+'" selected>'+esc(cur)+' ('+t("toCreate2")+')</option>';
+  return h;
+}
+function catOptions(cur){
+  let h='<option value="">'+t("catPh")+'</option>';
+  for(const x of S.catalog.categories) h+='<option value="'+esc(x.category)+'"'+(x.category===cur?" selected":"")+'>'+esc(x.category)+' ('+(x.count||x.items.length)+')</option>';
+  return h;
+}
+
+/* ---------- rendu : en-tête et liste ---------- */
+function renderChrome(){
+  document.documentElement.lang=LANG;
+  $("#brandSmall").textContent=t("brandSmall")+" · "+t("version"); $("#brandName").textContent=t("brand");
+  $("#newBtn").textContent=t("newBtn"); $("#sheetsTitle").textContent=t("sheets");
+  const ab=$("#admBtn"); ab.textContent=t("adm_btn"); ab.hidden=!S.isAdmin; ab.setAttribute("aria-current",String(S.view==="admin"));
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===LANG)));
+  $("#langSw").setAttribute("aria-label",t("lang"));
+  const s=$("#saveState"); if(s.dataset.k) s.textContent=t(s.dataset.k);
+  updCat();
+}
+function renderList(){
+  const el=$("#list");
+  const items=[...S.briefs.entries()].map(([id,b])=> id===S.sel&&S.draft?[id,S.draft]:[id,b])
+    .sort((a,b)=>String(b[1].updatedAt).localeCompare(String(a[1].updatedAt)));
+  if(!items.length){ el.innerHTML='<div class="empty-side">'+(S.loaded?t("noSheets"):t("loading"))+'</div>'; return; }
+  el.innerHTML=items.map(([id,b])=>'<button class="item" type="button" data-open="'+id+'" aria-current="'+(id===S.sel)+'"><span class="ic">'+(ICONS[b.productType]||"")+'</span><b>'+esc(b.name||t("nameless"))+'</b><span><span class="pill '+esc(b.status)+'">'+esc(t("st_"+b.status))+'</span>'+esc(PT_KEYS.includes(b.productType)?t("pt_"+b.productType):"")+'</span></button>').join("");
+}
+
+/* ---------- rendu : vue principale ---------- */
+const fmtDate = iso => { try{ return new Date(iso).toLocaleString(LOCALE(),{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});}catch(e){return "";} };
+function renderView(){
+  const v=$("#view");
+  if(S.view==="admin"){ renderAdmin(); return; }
+  if(S.creating!==null){ v.innerHTML=newView(); return; }
+  if(!S.draft){
+    v.innerHTML='<div class="empty"><h2>'+t("emptyTitle")+'</h2><p>'+t("emptyText")+'</p><button class="btn primary" type="button" data-act="new">'+t("newBtn")+'</button></div>'+
+      (S.local?'<div class="banner">'+t("localBanner")+'</div>':"");
+    return;
+  }
+  const b=S.draft;
+  const tabs=[["produit","1"],["formulaire","2"],["regles","3"],["delais","4"],["recap","5"]];
+  let h='<div class="fhead"><div class="t"><input type="text" id="f-name" data-bind="name" value="'+esc(b.name)+'" aria-label="'+t("engineName")+'"><div class="sub"><span class="pill '+esc(b.status)+'">'+esc(t("st_"+b.status))+'</span><span>'+esc(t("pt_"+b.productType))+'</span><span class="pill">'+esc(t("fl_badge",{l:t("l_"+b.language).toLowerCase()}))+'</span><span class="mono">'+t("components",{n:b.components.length})+'</span><span>'+t("modified",{d:esc(fmtDate(b.updatedAt))})+'</span></div></div>';
+  h+= S.confirmDel===S.sel ? '<div class="confirm">'+t("delSheetQ")+' <button class="btn sm danger" type="button" data-act="del-yes">'+t("del")+'</button><button class="btn sm" type="button" data-act="del-no">'+t("cancel")+'</button></div>'
+     : '<button class="btn ghost sm danger" type="button" data-act="del">'+t("delSheet")+'</button>';
+  h+='</div>'+langBanner(b)+(b.status==="import"?'<div class="banner">'+t("imp_wait",{n:esc(b.name)})+'</div>':'')+'<div class="tabs" role="tablist">'+tabs.map(([k,n])=>'<button class="tab" role="tab" type="button" data-tab="'+k+'" aria-selected="'+(S.tab===k)+'"><span class="n">'+n+'</span>'+t("tab_"+k)+'</button>').join("")+'</div>';
+  h+='<div class="panel">'+({produit:tabProduit,formulaire:tabForm,regles:tabRegles,delais:tabDelais,recap:tabRecap}[S.tab])(b)+'</div>';
+  v.innerHTML=h;
+}
+function renderAdmin(){
+  const v=$("#view");
+  const types=["*",...PT_KEYS];
+  let h='<div><button class="btn ghost sm" type="button" data-act="adm-back">'+t("adm_back")+'</button></div><div class="sec-title"><h2>'+t("adm_title")+'</h2><p>'+t("adm_text")+'</p></div>';
+  h+='<div class="card"><div class="bd" style="border-top:0;padding-top:16px"><div class="field"><label for="adm-lang">'+t("adm_lang")+'</label><div class="inline-add"><select id="adm-lang" style="max-width:260px"><option value="">'+t("l_browser")+'</option>'+LANGS.map(l=>'<option value="'+l+'"'+(ADMIN_LANG===l?" selected":"")+'>'+t("l_"+l)+'</option>').join("")+'</select><button class="btn sm" type="button" data-act="adm-lang">'+t("adm_save")+'</button></div><span class="hint">'+t("adm_langHint")+'</span></div>'+
+    '<div class="field"><label for="adm-pjm">'+t("set_pjm")+'</label><div class="inline-add"><input type="text" id="adm-pjm" style="flex:1;min-width:240px" value="'+esc(PJM_URL)+'" placeholder="https://xxx.printjobmanager.com"><button class="btn sm" type="button" data-act="adm-pjm">'+t("adm_save")+'</button></div><span class="hint">'+t("set_pjmHint")+'</span></div></div></div>';
+  h+='<div><button class="btn primary sm" type="button" data-act="adm-new">'+t("adm_new")+'</button></div>';
+  const qs=[...S.questions].sort((a,b2)=>(a.order||0)-(b2.order||0));
+  for(const qq of qs){
+    const id=esc(qq.id), pt=qq.productTypes||["*"];
+    h+='<div class="card" data-qcard="'+id+'"><div class="hd"><span class="mono hint">#'+esc(qq.order||0)+'</span><span class="comp-name">'+esc(qText(qq,"text")||"—")+'</span>'+(qq.active===false?'<span class="pill">off</span>':'')+'</div><div class="bd">'+
+      '<div class="grid">'+LANGS.map(l=>'<div class="field"><label>'+t("adm_q",{l:l.toUpperCase()})+'</label><textarea data-qf="text.'+l+'">'+esc((qq.text||{})[l]||"")+'</textarea>'+(((qq.text||{})[l])?'':'<span class="hint" style="color:var(--warn)">'+t("adm_missing")+'</span>')+'</div>').join("")+'</div>'+
+      '<div class="grid">'+LANGS.map(l=>'<div class="field"><label>'+t("adm_effect",{l:l.toUpperCase()})+'</label><textarea data-qf="effect.'+l+'">'+esc((qq.effect||{})[l]||"")+'</textarea></div>').join("")+'</div>'+
+      '<div class="grid"><div class="field"><span class="lbl">'+t("adm_types")+'</span><div style="display:flex;gap:12px;flex-wrap:wrap">'+types.map(k=>'<label class="check"><input type="checkbox" data-qtype="'+k+'"'+(pt.includes(k)?" checked":"")+'>'+(k==="*"?t("adm_all"):t("pt_"+k))+'</label>').join("")+'</div></div>'+
+      '<div class="field"><label>'+t("adm_atype")+'</label><select data-qf="answerType">'+["yesno","number","size","materials","text"].map(k=>'<option value="'+k+'"'+(qq.answerType===k?" selected":"")+'>'+t("at_"+k)+'</option>').join("")+'</select></div>'+
+      '<div class="field"><label>'+t("adm_unit")+'</label><input type="text" data-qf="unit" value="'+esc(qq.unit||"")+'"></div>'+
+      '<div class="field"><label>'+t("adm_order")+'</label><input type="number" data-qf="order" value="'+esc(qq.order||0)+'"></div></div>'+
+      '<div class="field"><label>'+t("adm_if")+'</label><input type="text" class="mono" data-qf="showIf" value="'+esc(qq.showIf||"")+'"><span class="hint">'+t("adm_ifHint")+'</span></div>'+
+      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><label class="check"><input type="checkbox" data-qf="active"'+(qq.active!==false?" checked":"")+'>'+t("adm_active")+'</label><button class="btn primary sm" type="button" data-act="adm-save" data-id="'+id+'">'+t("adm_save")+'</button></div>'+
+      '</div></div>';
+  }
+  h+='<div class="sec-title" style="margin-top:8px"><h2>'+t("adm_sug")+'</h2></div>';
+  h+= S.suggestions.length ? S.suggestions.map(sg=>'<div class="sub-card"><div>'+esc(sg.text)+'</div><span class="hint">'+esc(sg.productType?t("pt_"+sg.productType):"")+' · '+t("adm_from",{n:esc(sg.briefName||"")})+(sg.understood?' · '+esc(sg.understood):'')+'</span><div style="display:flex;gap:8px"><button class="btn primary sm" type="button" data-act="sug-accept" data-id="'+esc(sg.id)+'">'+t("adm_accept")+'</button><button class="btn ghost sm danger" type="button" data-act="sug-reject" data-id="'+esc(sg.id)+'">'+t("adm_reject")+'</button></div></div>').join("") : '<p class="hint">'+t("adm_noSug")+'</p>';
+  v.innerHTML=h;
+}
+function readQCard(card,base){
+  const qq=JSON.parse(JSON.stringify(base)); qq.text=qq.text||{}; qq.effect=qq.effect||{};
+  card.querySelectorAll("[data-qf]").forEach(el=>{ const k=el.dataset.qf; let val=el.type==="checkbox"?el.checked:el.value; if(k==="order") val=+val||0; if(k.includes(".")){ const [a,l]=k.split("."); qq[a][l]=val; } else qq[k]=val; });
+  qq.productTypes=[...card.querySelectorAll("[data-qtype]")].filter(x=>x.checked).map(x=>x.dataset.qtype);
+  qq.updatedAt=new Date().toISOString();
+  return qq;
+}
+async function rephrase(i){
+  const b=S.draft, r=b.freeRules[i]; if(!r||!r.text.trim()||!S.sample) return;
+  S.busy.add(r.id); r.error=""; rerenderKeep();
+  const ctx=b.components.map(cp=>({type:cp.type, name:cp.name, choices:cp.options?cp.options.map(x=>x.name):undefined, papers:cp.materials&&cp.materials.length?cp.materials:undefined}));
+  const langName={fr:"French",es:"Spanish",en:"English"}[LANG];
+  const prompt="You help a print shop configure a pricing engine in PrintJobManager (PJM). The engine form has these components (questions shown to the buyer):\n"+JSON.stringify(ctx)+
+    "\nProduct type: "+b.productType+". Lead-time choices: "+(b.delays.enabled?b.delays.choices.map(x=>x.label).join(", "):"none")+".\nThe printer wrote this business rule:\n\""+r.text+"\"\n"+
+    "Rephrase how you understood it in plain "+langName+", in one or two short sentences a non-technical printer can confirm (refer to questions and choices by their names, never mention PJM internals). "+
+    "Also list the concrete effects on the form (hide question X when Y = Z, remove choice A from X when ..., limit Q1 to ..., add step ...). If the rule is ambiguous, ask one short clarifying question in "+langName+".\n"+
+    'Reply with only JSON: {"understood":"...","effects":["..."],"unclear":""}';
+  try{
+    const res=await S.sample.json(prompt,{cache:false});
+    const cur=S.draft&&S.draft.freeRules.find(x=>x.id===r.id);
+    if(cur){ cur.understood=String(res.understood||""); cur.effects=Array.isArray(res.effects)?res.effects.map(String):[]; cur.unclear=String(res.unclear||""); cur.lang=LANG; touch(); }
+  }catch(e){ const cur=S.draft&&S.draft.freeRules.find(x=>x.id===r.id); if(cur) cur.error=t("fr_err",{e:(e&&(e.message||e.code))||"error"}); }
+  finally{ S.busy.delete(r.id); rerenderKeep(); }
+}
+function langBanner(b){
+  if(b.language===LANG) return '';
+  const fname=t("l_"+b.language).toLowerCase(), lname=t("l_"+LANG).toLowerCase();
+  const busy=S.translating;
+  return '<div class="banner lang-banner"><span>'+t("fl_mismatch",{f:esc(fname)})+'</span>'+
+    (S.sample?'<button class="btn sm" type="button" data-act="translate"'+(busy?' disabled':'')+'>'+(busy?t("fl_working"):t("fl_translate",{l:esc(lname)}))+'</button>':'<span class="hint">'+t("fl_noSample")+'</span>')+'</div>';
+}
+async function translateBrief(){
+  const b=S.draft; if(!b||!S.sample||S.translating) return;
+  const target=LANG, src=b.language;
+  const refs=[];
+  const push=(obj,key)=>{ if(obj&&typeof obj[key]==="string"&&obj[key].trim()) refs.push([obj,key]); };
+  push(b,"description");
+  if(/^(Nouveau moteur|Nuevo motor|New engine) – /.test(b.name)) push(b,"name");
+  for(const cp of b.components){ push(cp,"name"); push(cp,"userText"); if(cp.type==="quantity") push(cp,"unit"); if(cp.options) for(const op of cp.options){ push(op,"name"); for(const st of op.steps) push(st,"note"); } if(cp.steps) for(const st of cp.steps) push(st,"note"); }
+  push(b.delays,"name"); push(b.delays,"userText"); push(b.delays,"notes");
+  for(const x of b.delays.choices) push(x,"label");
+  for(const r of b.freeRules){ push(r,"text"); push(r,"understood"); }
+  push(b,"rulesNotes"); push(b,"notes"); push(b.margin,"notes");
+  const strings=refs.map(([o,k])=>o[k]);
+  const names={fr:"French",es:"Spanish",en:"English"};
+  const prompt="Translate each string of this JSON array from "+names[src]+" to "+names[target]+". It is the configuration of a print-shop pricing engine (questions, choices, units, notes). Keep the same order and count, keep numbers, codes like Q1, NCalc formulas and units like mm/cm/g unchanged, keep lead-time labels short (J+5 becomes D+5 in Spanish or English). Do not translate product, machine or paper brand names. Reply with only a JSON array of strings.\n"+JSON.stringify(strings);
+  S.translating=true; rerenderKeep();
+  try{
+    const out=await S.sample.json(prompt,{cache:false});
+    if(!Array.isArray(out)||out.length!==strings.length) throw {message:"bad length"};
+    const oldNames=new Map();
+    refs.forEach(([o,k],i)=>{ if(k==="name"&&o.options) oldNames.set(o.id,o.options.map(x=>x.name)); });
+    // remember old choice names to remap hideWhen values
+    const choiceMap=new Map(); b.components.forEach(cp=>{ if(cp.options) cp.options.forEach(op=>choiceMap.set(cp.id+"|"+op.name,op)); });
+    const resMap=(b.restrictions||[]).map(r=>{ const tg=b.components.find(x=>x.id===r.thenComp); return r.removeChoices.map(n=>tg&&tg.options?tg.options.find(op=>op.name===n):null); });
+    refs.forEach(([o,k],i)=>{ o[k]=String(out[i]); });
+    for(const cp of b.components) for(const hw of (cp.hideWhen||[])){ const op=choiceMap.get(hw.component+"|"+hw.value); if(op) hw.value=op.name; }
+    (b.restrictions||[]).forEach((r,ri)=>{ const op=choiceMap.get(r.ifComp+"|"+r.ifValue); if(op) r.ifValue=op.name; r.removeChoices=r.removeChoices.map((n,ni)=>{ const o2=resMap[ri][ni]; return o2?o2.name:n; }); });
+    b.language=target; touch(); toast(t("fl_done",{l:t("l_"+target).toLowerCase()}));
+  }catch(e){ toast(t("fl_err",{e:(e&&(e.message||e.code))||"error"})); }
+  finally{ S.translating=false; rerenderKeep(); }
+}
+function newView(){
+  const tp=S.creating||"";
+  return '<div class="sec-title"><h2>'+t("newTitle")+'</h2><p>'+t("newText")+'</p></div>'+
+   '<div class="ptypes">'+PT_KEYS.map(k=>'<button class="ptype" type="button" data-ptype="'+k+'" aria-pressed="'+(tp===k)+'"><span class="ic" style="color:var(--accent)">'+ICONS[k]+'</span><h3>'+t("pt_"+k)+'</h3><p>'+t("pd_"+k)+'</p><span class="qs">'+t("pq_"+k)+'</span></button>').join("")+'</div>'+
+   '<div class="grid"><div class="field"><label for="new-name">'+t("newName")+'</label><input type="text" id="new-name" placeholder="'+esc(t("newNamePh"))+'"></div></div>'+
+   '<div style="display:flex;gap:8px"><button class="btn primary" type="button" data-act="create"'+(tp?"":" disabled")+'>'+t("createBtn")+'</button><button class="btn" type="button" data-act="cancel-new">'+t("cancel")+'</button></div>'+
+   '<div class="card" style="margin-top:12px"><div class="hd"><h3 style="font-size:16px">'+t("imp_title")+'</h3></div><div class="bd"><p class="hint" style="margin:0">'+t("imp_text")+'</p><div class="inline-add"><input type="text" id="imp-url" style="flex:1;min-width:240px" placeholder="'+esc((PJM_URL||"https://…").replace(/\/$/,""))+'/ProductEngines/Edit/…" aria-label="'+t("imp_url")+'"><button class="btn sm" type="button" data-act="create-import">'+t("imp_btn")+'</button></div></div></div>';
+}
+function fld(label,path,val,opts={}){
+  const id="f-"+path.replace(/\./g,"-");
+  const tt=opts.type||"text";
+  let input;
+  if(tt==="select") input='<select id="'+id+'" data-bind="'+path+'">'+opts.options+'</select>';
+  else if(tt==="textarea") input='<textarea id="'+id+'" data-bind="'+path+'" placeholder="'+esc(opts.ph||"")+'">'+esc(val)+'</textarea>';
+  else input='<input type="'+tt+'" id="'+id+'" data-bind="'+path+'"'+(tt==="number"?' data-num="1" step="any"':"")+' value="'+esc(val)+'" placeholder="'+esc(opts.ph||"")+'">';
+  return '<div class="field"'+(opts.wide?' style="grid-column:1/-1"':"")+'><label for="'+id+'">'+label+'</label>'+input+(opts.hint?'<span class="hint">'+opts.hint+'</span>':"")+'</div>';
+}
+function chk(label,path,val){const id="f-"+path.replace(/\./g,"-"); return '<label class="check" for="'+id+'"><input type="checkbox" id="'+id+'" data-bind="'+path+'"'+(val?" checked":"")+'>'+label+'</label>';}
+const selOptsK = (keys,prefix,cur) => keys.map(k=>'<option value="'+k+'"'+(k===cur?" selected":"")+'>'+esc(t(prefix+k))+'</option>').join("");
+const selOpts = (obj,cur) => Object.entries(obj).map(([k,l])=>'<option value="'+k+'"'+(k===cur?" selected":"")+'>'+esc(l)+'</option>').join("");
+
+function tabProduit(b){
+  const qs=b.components.filter(x=>x.type==="quantity");
+  return '<div class="card"><div class="bd" style="border-top:0;padding-top:16px"><div class="grid">'+
+    fld(t("f_cat"),"pjmCategory",b.pjmCategory,{type:"select",options:PJM_CATEGORIES.map(x=>'<option'+(x===b.pjmCategory?" selected":"")+'>'+esc(x)+'</option>').join("")})+
+    fld(t("f_status"),"status",b.status,{type:"select",options:selOptsK(STATUS_KEYS,"st_",b.status),hint:t("f_statusHint")})+
+    fld(t("fl_lang"),"language",b.language,{type:"select",options:LANGS.map(l=>'<option value="'+l+'"'+(l===b.language?" selected":"")+'>'+t("l_"+l)+'</option>').join("")})+
+    fld(t("f_ptype"),"productType",b.productType,{type:"select",options:selOptsK(PT_KEYS,"pt_",b.productType),hint:t("f_ptypeHint")})+
+    fld(t("f_desc"),"description",b.description,{type:"textarea",wide:true,ph:t("f_descPh")})+
+    '</div></div></div>'+
+    '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("qtyDef")+'</h3></div><div class="bd"><div class="grid">'+
+    fld(t("qtyRef"),"quantityComponent",b.quantityComponent,{type:"select",options:qs.map(x=>'<option value="'+esc(x.code)+'"'+(x.code===b.quantityComponent?" selected":"")+'>'+esc(x.code+" – "+x.userText)+'</option>').join(""),hint:t("qtyRefHint")})+
+    '<div class="field"><span class="lbl">'+t("options")+'</span>'+chk(t("multiQty"),"multiQty",b.multiQty)+'</div>'+
+    '</div></div></div>'+pjmCard(b);
+}
+function countMapped(p){ let n=0; const walk=o=>{ if(!o||typeof o!=="object") return; for(const k in o){ if(k==="pjmId"&&o[k]) n++; else walk(o[k]); } }; walk(p&&p.map); return n; }
+function pjmCard(b){
+  const p=b.pjm||{};
+  let h='<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("pj_title")+'</h3></div><div class="bd">';
+  if(!PJM_URL) h+='<div class="banner">'+t("set_pjmMissing")+'</div>';
+  if(!p.engineId){ h+='<p class="hint" style="margin:0">'+t("pj_none")+'</p>'; return h+'</div></div>'; }
+  const url=(p.url)||(PJM_URL?PJM_URL.replace(/\/$/,"")+"/ProductEngines/Edit/"+p.engineId:"");
+  h+='<div class="grid"><div class="field"><span class="lbl">'+t("pj_engine")+'</span><span class="mono" style="word-break:break-all">'+esc(p.engineId)+'</span>'+(url?'<a href="'+esc(url)+'" target="_blank" rel="noopener">'+t("pj_open")+'</a>':'')+'</div>'+
+    '<div class="field"><span class="lbl">&nbsp;</span><span class="hint">'+(p.builtAt?t("pj_built",{d:esc(p.builtAt)}):"")+(p.importedAt?" · "+t("pj_imported",{d:esc(p.importedAt)}):"")+'</span><span class="hint">'+t("pj_mapped",{n:countMapped(p)})+'</span></div></div>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary sm" type="button" data-act="req-update">'+t("pj_update")+'</button><button class="btn sm" type="button" data-act="req-import">'+t("pj_reimport")+'</button></div>';
+  h+='<span class="hint">'+t("pj_updateHint")+'</span><span class="hint">'+t("pj_reimportHint")+'</span>';
+  return h+'</div></div>';
+}
+function hideWhenEditor(cp,ci){
+  const others=S.draft.components.filter(x=>x.type==="option"&&x.id!==cp.id);
+  if(!others.length) return "";
+  const rows=(cp.hideWhen||[]).map((hw,hi)=>{
+    const src=S.draft.components.find(x=>x.id===hw.component);
+    const vals=src?src.options.map(op=>'<option'+(op.name===hw.value?" selected":"")+'>'+esc(op.name)+'</option>').join(""):"";
+    return '<div class="row mat"><select data-bind="components.'+ci+'.hideWhen.'+hi+'.component" data-rerender="1" aria-label="'+t("component")+'">'+others.map(x=>'<option value="'+x.id+'"'+(x.id===hw.component?" selected":"")+'>'+esc(x.name)+'</option>').join("")+'</select><select data-bind="components.'+ci+'.hideWhen.'+hi+'.value" aria-label="'+t("value")+'">'+vals+'</select><button class="btn ghost sm" type="button" data-act="hw-del" data-ci="'+ci+'" data-i="'+hi+'" aria-label="'+t("removeCond")+'">✕</button></div>';
+  }).join("");
+  return '<div class="field"><span class="lbl">'+t("hideWhen")+'</span><div class="rows">'+rows+'</div><div><button class="btn ghost sm" type="button" data-act="hw-add" data-ci="'+ci+'">'+t("addCond")+'</button></div><span class="hint">'+t("hideHint")+'</span></div>';
+}
+function stepsEditor(steps,base,where){
+  const rows=steps.map((s,si)=>{
+    const p=base+"."+si;
+    return '<div class="row"><select data-bind="'+p+'.resource" data-rerender="1" aria-label="'+t("resource")+'">'+resOptions(s.resource)+'</select>'+
+      '<select data-bind="'+p+'.process" aria-label="'+t("process")+'">'+procOptions(s.resource,s.process)+'</select>'+
+      '<select data-bind="'+p+'.basis" data-rerender="1" aria-label="'+t("basis")+'">'+selOptsK(BASIS_KEYS,"b_",s.basis)+'</select>'+
+      '<button class="btn ghost sm" type="button" data-act="step-del" data-path="'+base+'" data-i="'+si+'" aria-label="'+t("removeStep")+'">✕</button>'+
+      (s.basis==="custom"?'<div class="custom"><input type="text" class="mono" data-bind="'+p+'.formula" value="'+esc(s.formula)+'" placeholder="'+esc(t("formulaPh"))+'"></div>':"")+
+      '<div class="custom"><input type="text" data-bind="'+p+'.note" value="'+esc(s.note)+'" placeholder="'+esc(t("notePh"))+'"></div></div>';
+  }).join("");
+  return '<div class="field"><span class="lbl">'+t("steps")+(where?" – "+where:"")+'</span><div class="rows">'+(rows||'<span class="hint">'+t("noSteps")+'</span>')+'</div><div><button class="btn ghost sm" type="button" data-act="step-add" data-path="'+base+'">'+t("addStep")+'</button></div></div>';
+}
+function matEditor(cp,ci){
+  const base="components."+ci;
+  const cat=S.catalog.categories.find(x=>x.category===cp.category);
+  let pick="";
+  if(cp.mode==="specific"){
+    if(cat&&cat.items.length){
+      pick='<div class="field"><span class="lbl">'+t("matsOffered",{n:cp.materials.length})+'</span><div class="matpick">'+cat.items.map(n=>'<label><input type="checkbox" data-mat="'+ci+'" value="'+esc(n)+'"'+(cp.materials.includes(n)?" checked":"")+'>'+esc(n)+'</label>').join("")+'</div></div>';
+    } else if(cp.category){ pick='<div class="hint">'+t("matsNotIn")+'</div>'; }
+    const extra=cp.materials.filter(n=>!(cat&&cat.items.includes(n)));
+    pick+='<div class="field"><span class="lbl">'+t("matsOther")+'</span><div class="chips">'+extra.map(n=>'<span class="chip">'+esc(n)+'<button type="button" data-act="mat-del" data-ci="'+ci+'" data-v="'+esc(n)+'" aria-label="'+t("remove")+'">✕</button></span>').join("")+'</div><div class="inline-add"><input type="text" id="matfree-'+ci+'" style="width:260px" placeholder="'+esc(t("matPh"))+'"><button class="btn sm" type="button" data-act="mat-add" data-ci="'+ci+'">'+t("add")+'</button></div></div>';
+  }
+  const fmts=(cp.sheetFormats||[]).map((f,fi)=>'<span class="chip">'+f.w+' × '+f.h+' mm<button type="button" data-act="fmt-del" data-ci="'+ci+'" data-i="'+fi+'" aria-label="'+t("removeFmt")+'">✕</button></span>').join("");
+  return '<div class="grid">'+
+    fld(t("m_mode"),base+".mode",cp.mode,{type:"select",options:selOpts({specific:t("m_specific"),category:t("m_category"),size:t("m_size")},cp.mode)})+
+    fld(t("m_cat"),base+".category",cp.category,{type:"select",options:catOptions(cp.category)})+
+    fld(t("m_impo"),base+".imposition",cp.imposition,{type:"select",options:selOptsK(IMPO_KEYS,"i_",cp.imposition)})+
+    fld(t("m_sides"),base+".sides",cp.sides,{type:"select",options:selOpts({recto:t("recto"),rv:t("rv")},cp.sides)})+
+    fld(t("bleed"),base+".bleed",cp.bleed,{type:"number"})+
+    '</div>'+pick+
+    '<div class="field"><span class="lbl">'+t("fmtTitle")+'</span><div class="chips">'+(fmts||'<span class="hint">'+t("noFormats")+'</span>')+'</div><div class="inline-add"><input type="number" id="fw-'+ci+'" placeholder="'+t("width")+'" aria-label="'+t("width")+' mm"><span>×</span><input type="number" id="fh-'+ci+'" placeholder="'+t("height")+'" aria-label="'+t("height")+' mm"><span class="hint">mm</span><button class="btn sm" type="button" data-act="fmt-add" data-ci="'+ci+'">'+t("addFmt")+'</button></div><span class="hint">'+t("fmtHint")+'</span></div>';
+}
+function compCard(cp,ci){
+  const base="components."+ci;
+  const open=S.matOpen.has(cp.id);
+  const summary = cp.type==="quantity" ? '<span class="comp-q mono">'+esc(cp.min)+' → '+esc(cp.max)+' '+esc(cp.unit)+'</span>'
+    : cp.type==="option" ? '<span class="comp-q">'+t("choices",{n:cp.options.length})+' · '+t("stepsN",{n:cp.options.reduce((a,x)=>a+x.steps.length,0)})+'</span>'
+    : cp.type==="material" ? '<span class="comp-q">'+(cp.mode==="specific"?t("matsN",{n:cp.materials.length}):esc(cp.category||t("chooseCat")))+(cp.sheetFormats.length?" · "+t("fmtsN",{n:cp.sheetFormats.length}):"")+'</span>'
+    : '<span class="comp-q">'+t("stepsN",{n:cp.steps.length})+'</span>';
+  let h='<div class="card" id="cp-'+cp.id+'"><div class="hd">'+(cp.type==="quantity"?'<span class="code">'+esc(cp.code)+'</span>':'')+'<span class="ctype '+cp.type+'">'+t("ct_"+cp.type)+'</span><span class="comp-name">'+esc(cp.name||t("nameless"))+'</span>'+summary+
+    (cp.hideWhen&&cp.hideWhen.length?'<span class="pill">'+t("conditional")+'</span>':"")+
+    '<span class="tools"><button class="btn ghost sm" type="button" data-act="up" data-ci="'+ci+'" aria-label="'+t("up")+'">↑</button><button class="btn ghost sm" type="button" data-act="down" data-ci="'+ci+'" aria-label="'+t("down")+'">↓</button><button class="btn ghost sm" type="button" data-act="toggle" data-id="'+cp.id+'" aria-expanded="'+open+'">'+(open?t("fold"):t("edit"))+'</button></span></div>';
+  if(!open) return h+'</div>';
+  h+='<div class="bd"><div class="grid">'+fld(t("c_name"),base+".name",cp.name)+fld(t("c_text"),base+".userText",cp.userText);
+  if(cp.type==="quantity"){
+    h+=fld(t("c_code"),base+".code",cp.code,{hint:t("c_codeHint")})+fld(t("c_unit"),base+".unit",cp.unit)+fld(t("c_min"),base+".min",cp.min,{type:"number"})+fld(t("c_max"),base+".max",cp.max,{type:"number"})+fld(t("c_def"),base+".def",cp.def,{type:"number"})+'</div>';
+  } else if(cp.type==="option"){
+    h+='</div><div style="display:flex;gap:18px;flex-wrap:wrap">'+chk(t("forceSel"),base+".forceSelect",cp.forceSelect)+chk(t("hidePub"),base+".hidePublic",cp.hidePublic)+'</div>';
+    h+=cp.options.map((op,oi)=>{const ob=base+".options."+oi; return '<div class="sub-card"><div class="sub-head"><input type="text" data-bind="'+ob+'.name" value="'+esc(op.name)+'" aria-label="'+t("choiceName")+'" style="flex:1;min-width:160px;font-weight:600"><label class="hint" style="display:flex;gap:6px;align-items:center">'+t("adjust")+'<input type="number" data-bind="'+ob+'.adjust" data-num="1" value="'+esc(op.adjust)+'" style="width:80px" aria-label="'+t("adjustAria")+'"></label><button class="btn ghost sm" type="button" data-act="opt-up" data-ci="'+ci+'" data-i="'+oi+'" aria-label="'+t("choiceUp")+'">↑</button><button class="btn ghost sm danger" type="button" data-act="opt-del" data-ci="'+ci+'" data-i="'+oi+'">'+t("remove")+'</button></div>'+stepsEditor(op.steps,ob+".steps","")+'</div>';}).join("");
+    h+='<div><button class="btn sm" type="button" data-act="opt-add" data-ci="'+ci+'">'+t("addChoice")+'</button></div>';
+  } else if(cp.type==="material"){
+    h+='</div><div style="display:flex;gap:18px;flex-wrap:wrap">'+chk(t("hidePub"),base+".hidePublic",cp.hidePublic)+'</div>'+matEditor(cp,ci);
+  } else {
+    h+='</div>'+stepsEditor(cp.steps,base+".steps",t("always"));
+  }
+  h+=hideWhenEditor(cp,ci);
+  h+= S.confirmDel===cp.id ? '<div class="confirm">'+t("delCompQ")+' <button class="btn sm danger" type="button" data-act="comp-del-yes" data-ci="'+ci+'">'+t("del")+'</button><button class="btn sm" type="button" data-act="comp-del-no">'+t("cancel")+'</button></div>'
+     : '<div><button class="btn ghost sm danger" type="button" data-act="comp-del" data-id="'+cp.id+'">'+t("delComp")+'</button></div>';
+  return h+'</div></div>';
+}
+function tabForm(b){
+  return '<div class="sec-title"><h2>'+t("formTitle")+'</h2><p>'+t("formText")+'</p></div>'+
+    b.components.map((cp,ci)=>compCard(cp,ci)).join("")+
+    '<div class="addbar"><span class="lbl">'+t("addComp")+'</span>'+CTYPES.map(k=>'<button class="btn sm" type="button" data-act="comp-add" data-t="'+k+'">+ '+t("ct_"+k)+'</button>').join("")+'</div>';
+}
+function tabDelais(b){
+  const d=b.delays;
+  const rows=d.choices.map((x,i)=>'<div class="row mat"><input type="text" data-bind="delays.choices.'+i+'.label" value="'+esc(x.label)+'" aria-label="'+t("dl_label")+'"><label class="hint" style="display:flex;gap:6px;align-items:center">'+t("dl_markup")+'<input type="number" data-num="1" data-bind="delays.choices.'+i+'.markup" value="'+esc(x.markup)+'" style="width:90px"></label><span class="tools"><button class="btn ghost sm" type="button" data-act="dl-up" data-i="'+i+'" aria-label="'+t("up")+'">↑</button><button class="btn ghost sm" type="button" data-act="dl-del" data-i="'+i+'" aria-label="'+t("dl_del")+'">✕</button></span></div>').join("");
+  return '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("dl_title")+'</h3></div><div class="bd"><p class="hint" style="margin:0">'+t("dl_text")+'</p>'+
+    chk(t("dl_enable"),"delays.enabled",d.enabled)+
+    (d.enabled?'<div class="grid">'+fld(t("c_name"),"delays.name",d.name)+fld(t("c_text"),"delays.userText",d.userText)+'</div>'+
+    '<div class="rows">'+(rows||'<span class="hint">'+t("dl_none")+'</span>')+'</div><div><button class="btn ghost sm" type="button" data-act="dl-add">'+t("dl_add")+'</button></div><span class="hint">'+t("dl_first")+'</span>':'')+
+    fld(t("d_rules"),"delays.notes",d.notes,{type:"textarea",wide:true,ph:t("d_rulesPh")})+
+    '</div></div>'+
+    '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("prices")+'</h3></div><div class="bd"><div class="grid">'+
+    fld(t("p_min"),"priceMin",b.priceMin,{type:"number"})+
+    fld(t("p_max"),"priceMax",b.priceMax,{type:"number"})+
+    fld(t("p_group"),"margin.pricingGroup",b.margin.pricingGroup,{ph:t("p_groupPh")})+
+    fld(t("p_notes"),"margin.notes",b.margin.notes,{type:"textarea",wide:true})+
+    '</div></div></div>'+
+    '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("buildTitle")+'</h3></div><div class="bd">'+
+    fld(t("buildLbl"),"notes",b.notes,{type:"textarea",wide:true,ph:t("buildPh")})+
+    '</div></div>';
+}
+function condChoices(cp){ return cp.type==="option"? cp.options.map(x=>x.name) : (cp.materials||[]); }
+function corpus(b){
+  const parts=[];
+  for(const cp of b.components){ parts.push(cp.name,cp.userText); if(cp.options) for(const o2 of cp.options){ parts.push(o2.name); for(const st of o2.steps) parts.push(st.resource,st.process); } if(cp.materials) parts.push(...cp.materials); if(cp.steps) for(const st of cp.steps) parts.push(st.resource,st.process); }
+  return parts.join(" \n ").toLowerCase();
+}
+function qText(qq,field){ const v=(qq[field]||{}); return v[LANG]||v.fr||v.es||v.en||""; }
+function questionsFor(b){
+  const cor=corpus(b);
+  return S.questions.filter(qq=>qq.active!==false && (!qq.productTypes||!qq.productTypes.length||qq.productTypes.includes("*")||qq.productTypes.includes(b.productType)) &&
+    (!qq.showIf || qq.showIf.split("|").map(x=>x.trim().toLowerCase()).filter(Boolean).some(x=>cor.includes(x))))
+    .sort((a,b2)=>(a.order||0)-(b2.order||0));
+}
+function allPapers(b){ return [...new Set(b.components.filter(x=>x.type==="material").flatMap(x=>x.materials||[]))]; }
+function answered(v){ return v!==undefined&&v!==""&&v!==null&&!(Array.isArray(v)&&!v.length)&&!(typeof v==="object"&&!Array.isArray(v)&&!(v.w||v.h)); }
+function guidedHtml(b){
+  const qs=questionsFor(b);
+  if(!qs.length) return '<p class="hint">'+t("g_none")+'</p>';
+  const nA=qs.filter(qq=>answered(b.guided[qq.id])).length;
+  return '<p class="hint" style="margin:0">'+t("g_answered",{a:nA,n:qs.length})+'</p>'+qs.map(qq=>{
+    const v=b.guided[qq.id]; const id=esc(qq.id); let inp="";
+    if(qq.answerType==="yesno") inp='<div style="display:flex;gap:16px">'+[["yes",t("g_yes")],["no",t("g_no")]].map(([k,l])=>'<label class="check"><input type="radio" name="g-'+id+'" data-g="'+id+'" value="'+k+'"'+(v===k?" checked":"")+'>'+l+'</label>').join("")+'</div>';
+    else if(qq.answerType==="number") inp='<div class="inline-add"><input type="number" data-g="'+id+'" data-gnum="1" value="'+esc(v??"")+'" style="width:120px"><span class="hint">'+esc(qq.unit||"")+'</span></div>';
+    else if(qq.answerType==="size"){ const sv=v||{}; inp='<div class="inline-add"><input type="number" data-g="'+id+'" data-gpart="w" value="'+esc(sv.w??"")+'" aria-label="'+t("width")+'"><span>×</span><input type="number" data-g="'+id+'" data-gpart="h" value="'+esc(sv.h??"")+'" aria-label="'+t("height")+'"><span class="hint">'+esc(qq.unit||"")+'</span></div>'; }
+    else if(qq.answerType==="materials"){ const ps=allPapers(b); const sel=Array.isArray(v)?v:[]; inp=ps.length?'<div class="matpick">'+ps.map(p=>'<label><input type="checkbox" data-g="'+id+'" data-gmat="1" value="'+esc(p)+'"'+(sel.includes(p)?" checked":"")+'>'+esc(p)+'</label>').join("")+'</div>':'<span class="hint">'+t("g_noPapers")+'</span>'; }
+    else inp='<textarea data-g="'+id+'">'+esc(v??"")+'</textarea>';
+    const eff=qText(qq,"effect");
+    return '<div class="sub-card gq'+(answered(v)?" done":"")+'"><div class="gq-q">'+esc(qText(qq,"text"))+'</div>'+inp+(eff?'<span class="hint">'+t("g_effect",{e:esc(eff)})+'</span>':'')+'</div>';
+  }).join("");
+}
+function freeHtml(b){
+  const rows=b.freeRules.map((r,i)=>{
+    const busy=S.busy.has(r.id);
+    let h='<div class="sub-card fr'+(r.status==="ok"?" done":"")+'"><div class="sub-head"><span class="mono hint">'+(i+1)+'</span>';
+    if(r.status==="ok") h+='<span style="flex:1">'+esc(r.text)+'</span><span class="pill cree">'+t("fr_validated")+'</span>';
+    else h+='<textarea data-fr="'+i+'" style="flex:1;min-height:44px">'+esc(r.text)+'</textarea>';
+    h+='<button class="btn ghost sm" type="button" data-act="fr-del" data-i="'+i+'" aria-label="'+t("fr_del")+'">✕</button></div>';
+    if(busy) h+='<div class="hint">'+t("fr_working")+'</div>';
+    else if(r.understood) h+='<div class="understood"><b>'+t("fr_understood")+'</b> '+esc(r.understood)+(r.unclear?'<div class="hint">'+t("fr_question",{q:esc(r.unclear)})+'</div>':'')+'</div>';
+    if(r.error) h+='<div class="hint" style="color:var(--bad)">'+esc(r.error)+'</div>';
+    const btns=[];
+    if(r.status!=="ok"){
+      if(S.sample&&!busy) btns.push('<button class="btn sm" type="button" data-act="fr-sample" data-i="'+i+'">'+t("fr_rephrase")+'</button>');
+      if(r.understood&&!busy) btns.push('<button class="btn primary sm" type="button" data-act="fr-ok" data-i="'+i+'">'+t("fr_ok")+'</button>');
+      if(!S.sample) btns.push('<span class="hint">'+t("fr_pending")+'</span>');
+    } else {
+      btns.push('<button class="btn ghost sm" type="button" data-act="fr-fix" data-i="'+i+'">'+t("fr_fix")+'</button>');
+      btns.push(r.suggested?'<span class="hint">'+t("fr_suggested")+'</span>':'<button class="btn ghost sm" type="button" data-act="fr-suggest" data-i="'+i+'">'+t("fr_suggest")+'</button>');
+    }
+    return h+'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+btns.join("")+'</div></div>';
+  }).join("");
+  return rows+'<div class="inline-add"><textarea id="fr-new" style="flex:1;min-height:44px;min-width:220px" placeholder="'+esc(t("fr_ph"))+'"></textarea><button class="btn sm" type="button" data-act="fr-add">'+t("fr_add")+'</button></div>';
+}
+function tabRegles(b){
+  let h='<div class="sec-title"><h2>'+t("g_title")+'</h2><p>'+t("g_text")+'</p></div>'+guidedHtml(b);
+  h+='<div class="sec-title" style="margin-top:8px"><h2>'+t("fr_title")+'</h2><p>'+t("fr_text")+'</p></div>'+freeHtml(b);
+  h+='<details class="expert"'+(S.expertOpen?" open":"")+'><summary>'+t("ex_title")+'</summary><div class="panel" style="margin-top:12px">'+expertHtml(b)+'</div></details>';
+  return h;
+}
+function expertHtml(b){
+  const conds=b.components.filter(x=>(x.type==="option"&&x.options.length)||(x.type==="material"&&x.mode==="specific"&&x.materials.length));
+  if(!conds.length) return '<p class="hint">'+t("r_noOpts")+'</p>';
+  const targets=b.components.filter(x=>x.type!=="quantity");
+  let h='<p class="hint" style="margin:0">'+t("r_text")+'</p><div class="banner" style="background:var(--accent-soft);color:var(--accent)">'+t("r_auto")+'</div>';
+  for(const cp of conds){
+    const n=b.components.filter(x=>(x.hideWhen||[]).some(hw=>hw.component===cp.id)).length + b.restrictions.filter(r=>r.ifComp===cp.id).length;
+    h+='<div class="card"><div class="hd"><span class="ctype '+cp.type+'">'+t("ct_"+cp.type)+'</span><span class="comp-name">'+esc(cp.name)+'</span><span class="comp-q">'+t("r_count",{n:n})+'</span></div><div class="bd">';
+    for(const v of condChoices(cp)){
+      let rows='';
+      for(const tg of targets){ if(tg.id===cp.id) continue;
+        const hidden=(tg.hideWhen||[]).some(hw=>hw.component===cp.id&&hw.value===v);
+        const rs=b.restrictions.find(r=>r.ifComp===cp.id&&r.ifValue===v&&r.thenComp===tg.id);
+        const key=esc(cp.id)+'|'+esc(v)+'|'+esc(tg.id);
+        rows+='<div class="rrow"><span class="rname">'+esc(tg.name)+'</span><label class="check"><input type="checkbox" data-rhide="'+key+'"'+(hidden?" checked":"")+'>'+t("r_hide")+'</label>';
+        if(tg.type==="option"&&tg.options.length>1&&!hidden){
+          rows+='<label class="check"><input type="checkbox" data-rres="'+key+'"'+(rs?" checked":"")+'>'+t("r_restrict")+'</label>';
+          if(rs) rows+='<div class="chips rchoices">'+tg.options.map(op=>'<label class="chip" style="padding-right:10px"><input type="checkbox" data-rch="'+key+'" value="'+esc(op.name)+'"'+(rs.removeChoices.includes(op.name)?" checked":"")+' style="accent-color:var(--accent)">'+esc(op.name)+'</label>').join("")+'</div>';
+        }
+        rows+='</div>';
+      }
+      h+='<div class="sub-card"><div class="lbl">'+t("r_q",{v:esc(v),c:esc(cp.name)})+'</div><div class="rrows">'+rows+'</div></div>';
+    }
+    h+='</div></div>';
+  }
+  h+='<div class="card"><div class="bd" style="border-top:0;padding-top:16px">'+fld(t("r_other"),"rulesNotes",b.rulesNotes,{type:"textarea",wide:true,ph:t("r_otherPh"),hint:t("r_otherHint")})+'</div></div>';
+  return h;
+}
+function validate(b){
+  const out=[];
+  const defaultNames=PT_KEYS.flatMap(k=>LANGS.map((l,i)=>T.newEngine[i].replace("{p}",T["pt_"+k][i])));
+  if(!b.name||defaultNames.includes(b.name)) out.push(["warn",t("v_name")]);
+  const codes=b.components.filter(x=>x.type==="quantity").map(x=>x.code);
+  if(!codes.includes("Q1")) out.push(["bad",t("v_q1")]);
+  if(new Set(codes).size!==codes.length) out.push(["bad",t("v_dup")]);
+  const known=new Set(S.catalog.resources.map(r=>r.name));
+  for(const cp of b.components){
+    if(cp.type==="option"){
+      if(!cp.options.length) out.push(["bad",t("v_noChoice",{c:cp.name})]);
+      for(const op of cp.options) for(const s of op.steps){
+        if(!s.resource||!s.process) out.push(["bad",t("v_step",{c:cp.name,o:op.name})]);
+        if(s.basis==="custom"&&!s.formula&&!s.note) out.push(["warn",t("v_custom",{c:cp.name,o:op.name})]);
+      }
+    }
+    if(cp.type==="material"){
+      if(!cp.category) out.push(["bad",t("v_cat",{c:cp.name})]);
+      if(cp.mode==="specific"&&!cp.materials.length) out.push(["bad",t("v_noMat",{c:cp.name})]);
+      if(cp.imposition==="brochure4"&&!codes.includes("Q2")) out.push(["warn",t("v_q2",{c:cp.name})]);
+    }
+    if(cp.type==="calculation") for(const s of cp.steps) if(!s.resource||!s.process) out.push(["bad",t("v_calc",{c:cp.name})]);
+    const allSteps=cp.type==="option"?cp.options.flatMap(x=>x.steps):(cp.steps||[]);
+    for(const s of allSteps) if(s.resource&&known.size&&!known.has(s.resource)) out.push(["warn",t("v_res",{r:s.resource})]);
+  }
+  if(!PJM_URL&&!S.local) out.push(["warn",t("set_pjmMissing")]);
+  if(b.delays.enabled&&!b.delays.choices.length) out.push(["bad",t("dl_none")]);
+  { const qs=questionsFor(b); const nA=qs.filter(qq=>answered(b.guided[qq.id])).length; if(nA<qs.length) out.push(["warn",t("g_title")+" : "+t("g_answered",{a:nA,n:qs.length})]); }
+  for(const r of b.restrictions){ const tg=b.components.find(x=>x.id===r.thenComp), ic=b.components.find(x=>x.id===r.ifComp); if(tg&&ic&&tg.options&&r.removeChoices.length>=tg.options.length) out.push(["warn",t("v_restrict",{c:tg.name,x:ic.name,v:r.ifValue})]); }
+  if(!out.length) out.push(["ok",t("v_ok")]);
+  return out;
+}
+function spec(b){
+  return {engine:{name:b.name, category:b.pjmCategory, description:b.description, productType:b.productType, language:b.language||LANG, quantityComponent:b.quantityComponent, allowMultipleQuantities:b.multiQty, priceMin:b.priceMin, priceMax:b.priceMax},
+    components:b.components.map(cp=>{
+      const hw=(cp.hideWhen||[]).map(h=>({component:(b.components.find(x=>x.id===h.component)||{}).name, value:h.value}));
+      const base={type:cp.type, name:cp.name, userText:cp.userText, hideWhen:hw};
+      if(cp.type==="quantity") return {...base, code:cp.code, unit:cp.unit, min:cp.min, max:cp.max, default:cp.def};
+      if(cp.type==="option") return {...base, forceSelect:cp.forceSelect, hidePublic:cp.hidePublic, options:cp.options.map(x=>({name:x.name, adjustPercent:x.adjust, production:x.steps.map(s=>({resource:s.resource, process:s.process, basis:s.basis, formula:s.formula||undefined, note:s.note||undefined}))}))};
+      if(cp.type==="material") return {...base, hidePublic:cp.hidePublic, mode:cp.mode, category:cp.category, materials:cp.materials, sheetFormats:cp.sheetFormats, bleedMm:cp.bleed, sides:cp.sides, imposition:cp.imposition};
+      return {...base, production:cp.steps.map(s=>({resource:s.resource, process:s.process, basis:s.basis, formula:s.formula||undefined, note:s.note||undefined}))};
+    }),
+    leadTimes:b.delays.enabled?{component:"option", name:b.delays.name, userText:b.delays.userText, choices:b.delays.choices.map(x=>({name:x.label, adjustPercent:x.markup})), notes:b.delays.notes}:null,
+    restrictions:b.restrictions.filter(r=>r.removeChoices.length).map(r=>({if:{component:(b.components.find(x=>x.id===r.ifComp)||{}).name, value:r.ifValue}, component:(b.components.find(x=>x.id===r.thenComp)||{}).name, removeChoices:r.removeChoices})),
+    guidedAnswers:questionsFor(b).filter(qq=>answered(b.guided[qq.id])).map(qq=>({id:qq.id, question:qText(qq,"text"), answer:b.guided[qq.id], effect:qText(qq,"effect")})),
+    freeRules:b.freeRules.map(r=>({text:r.text, understood:r.understood||"", effects:r.effects||[], unclear:r.unclear||"", validated:r.status==="ok"})),
+    businessRules:b.rulesNotes, autoRule:"forced option on --Select-- behaves as its first choice",
+    tests:b.tests.map(tc=>({label:tc.label, quantities:tc.q||{}, choices:Object.fromEntries(Object.entries(tc.c||{}).filter(([k,v])=>v).map(([k,v])=>[k==="__delay"?b.delays.name:((b.components.find(x=>x.id===k)||{}).name||k),v])), expected:tc.expected===""?null:tc.expected, last:tc.last||null})),
+    pjm:{instance:PJM_URL||null, engineId:(b.pjm||{}).engineId||null, map:(b.pjm||{}).map||null},
+    pricing:b.margin, buildNotes:b.notes, status:b.status};
+}
+function testsHtml(b){
+  const qs=b.components.filter(x=>x.type==="quantity"), os=b.components.filter(x=>x.type==="option"||(x.type==="material"&&x.mode==="specific"));
+  const rows=b.tests.map((tc,i)=>{
+    const base="tests."+i;
+    let h='<div class="sub-card"><div class="sub-head"><input type="text" data-bind="'+base+'.label" value="'+esc(tc.label)+'" aria-label="'+t("t_label")+'" style="flex:1;min-width:160px;font-weight:600"><button class="btn ghost sm" type="button" data-act="t-del" data-i="'+i+'" aria-label="'+t("t_del")+'">✕</button></div><div class="grid">';
+    for(const q2 of qs) h+=fld(esc(q2.code+" · "+q2.name),base+".q."+q2.code,(tc.q||{})[q2.code]??"",{type:"number"});
+    for(const cp of os){ const ch=cp.type==="option"?cp.options.map(x=>x.name):cp.materials; const cur=(tc.c||{})[cp.id]||""; h+=fld(esc(cp.name),base+".c."+cp.id,cur,{type:"select",options:'<option value="">'+t("t_any")+'</option>'+ch.map(n=>'<option'+(n===cur?" selected":"")+'>'+esc(n)+'</option>').join("")}); }
+    if(b.delays.enabled){ const cur=(tc.c||{}).__delay||""; h+=fld(esc(b.delays.name),base+".c.__delay",cur,{type:"select",options:'<option value="">'+t("t_any")+'</option>'+b.delays.choices.map(x=>'<option'+(x.label===cur?" selected":"")+'>'+esc(x.label)+'</option>').join("")}); }
+    h+=fld(t("t_expected"),base+".expected",tc.expected??"",{type:"number"})+'</div>';
+    const L=tc.last; h+='<div class="hint">'+(L&&L.price!=null?t("t_last",{p:esc(L.price),d:esc(L.at||"")})+' · <span class="pill '+(L.ok===false?"construction":"cree")+'">'+(L.ok===false?t("t_diff"):t("t_ok"))+'</span>':t("t_never"))+'</div>';
+    return h+'</div>';
+  }).join("");
+  return '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("t_title")+'</h3><button class="btn sm" type="button" data-act="t-add" style="margin-left:auto">'+t("t_add")+'</button></div><div class="bd"><p class="hint" style="margin:0">'+t("t_text")+'</p>'+(rows||'<span class="hint">'+t("t_none")+'</span>')+'</div></div>';
+}
+function tabRecap(b){
+  const issues=validate(b);
+  const bad=issues.some(i=>i[0]==="bad");
+  const sum=b.components.map(cp=>{
+    let li="";
+    if(cp.type==="quantity") li='<li>'+esc(cp.userText)+' · '+t("rangeX",{a:esc(cp.min),b:esc(cp.max),u:esc(cp.unit)})+'</li>';
+    if(cp.type==="option") li=cp.options.map(x=>'<li><b>'+esc(x.name)+'</b>'+(x.steps.length?' → '+x.steps.map(s=>esc(s.resource)+' / '+esc(s.process)+' ('+esc(t("b_"+s.basis))+')').join(" + "):' → '+t("noCost"))+'</li>').join("");
+    if(cp.type==="material") li='<li>'+esc(cp.category||t("catQ"))+' · '+(cp.mode==="specific"?t("matsN",{n:cp.materials.length}):t("modeX",{m:esc(cp.mode)}))+' · '+esc(t("i_"+cp.imposition))+' · '+t("bleedX",{b:esc(cp.bleed)})+(cp.sheetFormats.length?' · '+t("fmtsX",{f:cp.sheetFormats.map(f=>f.w+'×'+f.h).join(", ")}):"")+'</li>';
+    if(cp.type==="calculation") li=cp.steps.map(s=>'<li>'+esc(s.resource)+' / '+esc(s.process)+' ('+esc(t("b_"+s.basis))+')</li>').join("");
+    const cond=(cp.hideWhen||[]).map(h=>t("hiddenIf",{c:esc((b.components.find(x=>x.id===h.component)||{}).name),v:esc(h.value)})).join(", ");
+    return '<div class="c '+cp.type+'"><h4>'+(cp.type==="quantity"?'<span class="code">'+esc(cp.code)+'</span>':'<span class="ctype '+cp.type+'">'+t("ct_"+cp.type)+'</span>')+esc(cp.name)+(cond?' <span class="hint">'+cond+'</span>':'')+'</h4><ul>'+li+'</ul></div>';
+  }).join("");
+  let extra='';
+  if(b.delays.enabled) extra+='<div class="c option"><h4><span class="ctype option">'+t("ct_option")+'</span>'+esc(b.delays.name)+'</h4><ul>'+b.delays.choices.map(x=>'<li>'+esc(x.label)+' · +'+esc(x.markup)+' %</li>').join("")+'</ul></div>';
+  for(const r of b.restrictions.filter(r=>r.removeChoices.length)){ const tg=b.components.find(x=>x.id===r.thenComp), ic=b.components.find(x=>x.id===r.ifComp); if(tg&&ic) extra+='<div class="c"><h4>'+esc(tg.name)+' <span class="hint">'+t("r_when",{c:esc(ic.name),v:esc(r.ifValue)})+'</span></h4><ul><li>'+t("r_restrictOf",{c:esc(tg.name)})+' : '+r.removeChoices.map(esc).join(", ")+'</li></ul></div>'; }
+  const json=JSON.stringify(spec(b),null,2);
+  return '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("check")+'</h3>'+
+    (b.status==="pret"?'<span class="pill pret" style="margin-left:auto">'+t("readyPill")+'</span>':'<button class="btn primary sm" type="button" data-act="ready" style="margin-left:auto"'+(bad?' disabled title="'+esc(t("fixRed"))+'"':'')+'>'+t("markReady")+'</button>')+
+    '</div><div class="bd"><ul class="issues">'+issues.map(([k,x])=>'<li class="'+k+'">'+esc(x)+'</li>').join("")+'</ul>'+
+    '<p class="hint" style="margin:0">'+t("askClaude",{n:esc(b.name)})+'</p></div></div>'+
+    '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("described")+'</h3></div><div class="bd"><div class="summary">'+sum+extra+'</div></div></div>'+
+    testsHtml(b)+
+    '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("specTitle")+'</h3><button class="btn sm" type="button" data-act="copy" style="margin-left:auto">'+t("copyJson")+'</button></div><div class="bd"><pre class="json" id="json">'+esc(json)+'</pre></div></div>';
+}
+
+/* ---------- événements ---------- */
+function rerenderKeep(){ const y=window.scrollY; renderView(); window.scrollTo(0,y); }
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(S.draft&&el.dataset&&el.dataset.g!==undefined&&!el.dataset.gmat&&el.type!=="radio"){ const id=el.dataset.g; if(el.dataset.gpart){ const cur=Object.assign({},S.draft.guided[id]||{}); cur[el.dataset.gpart]=el.value===""?"":Number(el.value); S.draft.guided[id]=cur; } else S.draft.guided[id]=el.dataset.gnum?(el.value===""?"":Number(el.value)):el.value; touch(); return; }
+  if(S.draft&&el.dataset&&el.dataset.fr!==undefined){ const r=S.draft.freeRules[+el.dataset.fr]; if(r){ r.text=el.value; r.understood=""; r.effects=[]; r.unclear=""; touch(); } return; }
+  const path=el.dataset&&el.dataset.bind; if(!path||!S.draft) return;
+  if(el.type==="checkbox") return;
+  let v=el.value; if(el.dataset.num) v = v===""?"":Number(v);
+  setP(S.draft,path,v); touch();
+});
+document.addEventListener("change",e=>{
+  const el=e.target;
+  if(S.draft&&el.dataset&&el.dataset.g!==undefined&&(el.type==="radio"||el.dataset.gmat)){ const id=el.dataset.g;
+    if(el.type==="radio") S.draft.guided[id]=el.value; else { const st=new Set(S.draft.guided[id]||[]); el.checked?st.add(el.value):st.delete(el.value); S.draft.guided[id]=[...st]; }
+    touch(); const card=el.closest(".gq"); if(card) card.classList.toggle("done",answered(S.draft.guided[id])); return; }
+  if(S.draft&&el.dataset&&(el.dataset.rhide||el.dataset.rres||el.dataset.rch)){
+    const b=S.draft; const [ci,v,ti]=(el.dataset.rhide||el.dataset.rres||el.dataset.rch).split("|"); const tg=b.components.find(x=>x.id===ti); if(!tg) return;
+    if(el.dataset.rhide){ tg.hideWhen=(tg.hideWhen||[]).filter(h=>!(h.component===ci&&h.value===v)); if(el.checked){ tg.hideWhen.push({component:ci,value:v}); b.restrictions=b.restrictions.filter(r=>!(r.ifComp===ci&&r.ifValue===v&&r.thenComp===ti)); } }
+    else if(el.dataset.rres){ b.restrictions=b.restrictions.filter(r=>!(r.ifComp===ci&&r.ifValue===v&&r.thenComp===ti)); if(el.checked) b.restrictions.push({id:uid(),ifComp:ci,ifValue:v,thenComp:ti,removeChoices:[]}); }
+    else { const r=b.restrictions.find(r=>r.ifComp===ci&&r.ifValue===v&&r.thenComp===ti); if(r){ const st=new Set(r.removeChoices); el.checked?st.add(el.value):st.delete(el.value); r.removeChoices=[...st]; } touch(); return; }
+    touch(); rerenderKeep(); return;
+  }
+  if(el.dataset&&el.dataset.mat!==undefined&&S.draft){
+    const cp=S.draft.components[+el.dataset.mat]; const set=new Set(cp.materials);
+    el.checked?set.add(el.value):set.delete(el.value); cp.materials=[...set]; touch(); return;
+  }
+  const path=el.dataset&&el.dataset.bind; if(!path||!S.draft) return;
+  if(el.type==="checkbox"){ setP(S.draft,path,el.checked); touch(); if(path==="delays.enabled") rerenderKeep(); return; }
+  if(el.tagName==="SELECT"){
+    setP(S.draft,path,el.value);
+    if(/\.resource$/.test(path)) setP(S.draft,path.replace(/resource$/,"process"),"");
+    if(/\.hideWhen\.\d+\.component$/.test(path)){ const src=S.draft.components.find(x=>x.id===el.value); setP(S.draft,path.replace(/component$/,"value"),src&&src.options[0]?src.options[0].name:""); }
+    touch();
+    if(el.dataset.rerender||/\.(mode|category)$/.test(path)||path==="status"||path==="productType"||path==="language") rerenderKeep();
+  }
+});
+document.addEventListener("click",e=>{
+  const lb=e.target.closest("[data-lang]");
+  if(lb){ LANG=lb.dataset.lang; try{ localStorage.setItem("pjm.lang",LANG);}catch(err){} renderChrome(); renderList(); rerenderKeep(); return; }
+  const tg=e.target.closest("[data-open],[data-act],[data-tab],[data-ptype]"); if(!tg) return;
+  if(tg.dataset.open){ S.view="brief"; renderChrome(); select(tg.dataset.open); return; }
+  if(tg.dataset.tab){ if(S.dirty) flush(); S.tab=tg.dataset.tab; renderView(); return; }
+  if(tg.dataset.ptype){ S.creating=tg.dataset.ptype; const n=$("#new-name")&&$("#new-name").value; renderView(); if(n) $("#new-name").value=n; return; }
+  const a=tg.dataset.act, b=S.draft, ci=tg.dataset.ci!==undefined?+tg.dataset.ci:null;
+  if(a&&a.startsWith("adm-")||a&&a.startsWith("sug-")){ adminAct(a,tg); return; }
+  switch(a){
+    case "new": startNew(); break;
+    case "cancel-new": S.creating=null; renderView(); break;
+    case "create": if(S.creating) createBrief(S.creating, ($("#new-name").value||"").trim()); break;
+    case "create-import": { const u=($("#imp-url").value||"").trim(); const m2=u.match(/ProductEngines\/Edit\/([0-9a-f-]{36})/i); if(!m2){ toast(t("imp_bad")); break; } createImport(m2[1],u); break; }
+    case "del": S.confirmDel=S.sel; renderView(); break;
+    case "del-no": S.confirmDel=null; renderView(); break;
+    case "del-yes": deleteBrief(S.sel); break;
+    case "toggle": { const id=tg.dataset.id; S.matOpen.has(id)?S.matOpen.delete(id):S.matOpen.add(id); rerenderKeep(); break; }
+    case "up": case "down": { const j=a==="up"?ci-1:ci+1; if(j<0||j>=b.components.length) break; const arr=b.components; [arr[ci],arr[j]]=[arr[j],arr[ci]]; touch(); rerenderKeep(); break; }
+    case "comp-del": S.confirmDel=tg.dataset.id; rerenderKeep(); break;
+    case "comp-del-no": S.confirmDel=null; rerenderKeep(); break;
+    case "comp-del-yes": { const id=b.components[ci].id; b.components.splice(ci,1); b.components.forEach(x=>x.hideWhen=(x.hideWhen||[]).filter(h=>h.component!==id)); b.restrictions=(b.restrictions||[]).filter(r=>r.ifComp!==id&&r.thenComp!==id); S.confirmDel=null; touch(); rerenderKeep(); break; }
+    case "comp-add": { const ty=tg.dataset.t; const used=b.components.filter(x=>x.type==="quantity").map(x=>+x.code.slice(1)).filter(n=>!isNaN(n));
+      const nc= ty==="quantity"? q("Q"+((used.length?Math.max(...used):0)+1),t("newQty"),t("newQty"),"",1,9999,1)
+        : ty==="option"? o(t("newOpt"),t("newOpt"),[opt(t("choiceN",{n:1}))])
+        : ty==="material"? m(t("newMat"),t("paper"))
+        : c(t("newCalc"),t("newCalc"),[step()]);
+      b.components.push(nc); S.matOpen.add(nc.id); touch(); rerenderKeep(); setTimeout(()=>{const el=document.getElementById("cp-"+nc.id); el&&el.scrollIntoView({block:"center"});},0); break; }
+    case "opt-add": b.components[ci].options.push(opt(t("choiceN",{n:b.components[ci].options.length+1}))); touch(); rerenderKeep(); break;
+    case "opt-del": b.components[ci].options.splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "opt-up": { const i=+tg.dataset.i; if(i>0){ const ar=b.components[ci].options; [ar[i-1],ar[i]]=[ar[i],ar[i-1]]; touch(); rerenderKeep(); } break; }
+    case "step-add": getP(b,tg.dataset.path).push(step("","","feuilles")); touch(); rerenderKeep(); break;
+    case "step-del": getP(b,tg.dataset.path).splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "hw-add": { const src=b.components.find(x=>x.type==="option"&&x.id!==b.components[ci].id); if(src){ b.components[ci].hideWhen.push({component:src.id,value:src.options[0]?src.options[0].name:""}); touch(); rerenderKeep(); } break; }
+    case "hw-del": b.components[ci].hideWhen.splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "fmt-add": { const wv=+$("#fw-"+ci).value, hv=+$("#fh-"+ci).value; if(wv>0&&hv>0){ b.components[ci].sheetFormats.push({w:wv,h:hv}); touch(); rerenderKeep(); } else toast(t("fmtNeed")); break; }
+    case "fmt-del": b.components[ci].sheetFormats.splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "mat-add": { const inp=$("#matfree-"+ci); const v=(inp.value||"").trim(); if(v&&!b.components[ci].materials.includes(v)){ b.components[ci].materials.push(v); touch(); rerenderKeep(); } break; }
+    case "mat-del": { const cp=b.components[ci]; cp.materials=cp.materials.filter(n=>n!==tg.dataset.v); touch(); rerenderKeep(); break; }
+    case "fr-add": { const ta=$("#fr-new"); const txt=(ta.value||"").trim(); if(txt){ b.freeRules.push({id:uid(),text:txt,understood:"",effects:[],unclear:"",status:"draft",lang:LANG}); touch(); rerenderKeep(); const i=b.freeRules.length-1; if(S.sample) rephrase(i); } break; }
+    case "fr-del": b.freeRules.splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "fr-sample": rephrase(+tg.dataset.i); break;
+    case "fr-ok": b.freeRules[+tg.dataset.i].status="ok"; touch(); rerenderKeep(); break;
+    case "fr-fix": b.freeRules[+tg.dataset.i].status="draft"; touch(); rerenderKeep(); break;
+    case "fr-suggest": { const r=b.freeRules[+tg.dataset.i]; if(!S.local){ S.db.collection("suggestions").add({text:r.text, understood:r.understood||"", lang:r.lang||LANG, productType:b.productType, briefId:S.sel, briefName:b.name, by:S.uidSelf||null, createdAt:new Date().toISOString()}).then(()=>{ r.suggested=true; touch(); rerenderKeep(); toast(t("fr_sugDone")); },err=>toast(t("fr_err",{e:err&&err.code||"error"}))); } break; }
+    case "translate": translateBrief(); break;
+    case "req-update": b.status="maj"; touch(); flush(); rerenderKeep(); toast(t("pj_requested",{n:b.name})); break;
+    case "req-import": b.status="import"; touch(); flush(); rerenderKeep(); toast(t("pj_requested",{n:b.name})); break;
+    case "t-add": b.tests.push({id:uid(),label:t("t_defName",{n:b.tests.length+1}),q:Object.fromEntries(b.components.filter(x=>x.type==="quantity").map(x=>[x.code,x.def])),c:{},expected:"",last:null}); touch(); rerenderKeep(); break;
+    case "t-del": b.tests.splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "dl-add": b.delays.choices.push({id:uid(),label:t("dayPrefix"),markup:0}); touch(); rerenderKeep(); break;
+    case "dl-del": b.delays.choices.splice(+tg.dataset.i,1); touch(); rerenderKeep(); break;
+    case "dl-up": { const i=+tg.dataset.i; if(i>0){ const ar=b.delays.choices; [ar[i-1],ar[i]]=[ar[i],ar[i-1]]; touch(); rerenderKeep(); } break; }
+    case "ready": b.status="pret"; touch(); flush(); rerenderKeep(); toast(t("markedReady")); break;
+    case "copy": { const txt=$("#json").textContent; navigator.clipboard.writeText(txt).then(()=>toast(t("jsonCopied")),()=>{ const r=document.createRange(); r.selectNodeContents($("#json")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast(t("selCopy")); }); break; }
+  }
+});
+function openAdmin(){ if(S.dirty) flush(); S.view="admin"; S.creating=null; renderChrome(); renderView(); window.scrollTo(0,0); }
+async function adminAct(a,tg){
+  if(a==="adm-pjm"){ let v=($("#adm-pjm").value||"").trim().replace(/\/+$/,""); if(v&&!/^https?:\/\//.test(v)) v="https://"+v; try{ await S.db.doc("settings/app").set({defaultLang:ADMIN_LANG, pjmUrl:v, updatedAt:new Date().toISOString()}); toast(t("adm_saved")); }catch(e){ toast(t("adm_fail")); } return; }
+  if(a==="adm-lang"){ const v=$("#adm-lang").value||null; try{ await S.db.doc("settings/app").set({defaultLang:v, pjmUrl:PJM_URL||"", updatedAt:new Date().toISOString()}); toast(t("adm_langSaved")); }catch(e){ toast(t("adm_fail")); } return; }
+  if(a==="adm-back"){ S.view="brief"; renderChrome(); renderView(); return; }
+  if(a==="adm-new"){ const id="q"+Date.now().toString(36); const qq={id, active:true, productTypes:["*"], answerType:"yesno", text:{fr:"",es:"",en:""}, effect:{fr:"",es:"",en:""}, unit:"", showIf:"", order:(Math.max(0,...S.questions.map(x=>x.order||0))+10), createdAt:new Date().toISOString(), source:"admin"};
+    try{ await S.db.doc("questions/"+id).set(qq); toast(t("adm_saved")); }catch(e){ toast(t("adm_fail")); } return; }
+  if(a==="adm-save"){ const base=S.questions.find(x=>x.id===tg.dataset.id); const card=tg.closest("[data-qcard]"); if(!base||!card) return; const qq=readQCard(card,base);
+    try{ await S.db.doc("questions/"+qq.id).set(qq); toast(t("adm_saved")); }catch(e){ toast(t("adm_fail")); } return; }
+  if(a==="sug-accept"){ const sg=S.suggestions.find(x=>x.id===tg.dataset.id); if(!sg) return; const id="q"+Date.now().toString(36); const tx={fr:"",es:"",en:""}; tx[sg.lang||"fr"]=sg.text;
+    const qq={id, active:false, productTypes:[sg.productType||"*"], answerType:"yesno", text:tx, effect:{fr:"",es:"",en:""}, unit:"", showIf:"", order:(Math.max(0,...S.questions.map(x=>x.order||0))+10), createdAt:new Date().toISOString(), source:"suggestion"};
+    try{ await S.db.doc("questions/"+id).set(qq); await S.db.doc("suggestions/"+sg.id).delete(); toast(t("adm_saved")); }catch(e){ toast(t("adm_fail")); } return; }
+  if(a==="sug-reject"){ try{ await S.db.doc("suggestions/"+tg.dataset.id).delete(); }catch(e){ toast(t("adm_fail")); } return; }
+}
+function startNew(){ if(S.dirty) flush(); S.view="brief"; S.creating=""; S.sel=null; S.draft=null; renderList(); renderView(); }
+$("#newBtn").addEventListener("click",startNew);
+$("#admBtn").addEventListener("click",openAdmin);
+document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("expert")) S.expertOpen=e.target.open; },true);
+document.addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.id&&/^(fw|fh)-/.test(e.target.id)){ const ci=e.target.id.split("-")[1]; document.querySelector('[data-act="fmt-add"][data-ci="'+ci+'"]').click(); }
+  if(e.key==="Enter"&&e.target.id&&/^matfree-/.test(e.target.id)){ document.querySelector('[data-act="mat-add"][data-ci="'+e.target.id.split("-")[1]+'"]').click(); } });
+window.addEventListener("beforeunload",()=>{ if(S.dirty) flush(); });
+
+function updCat(){
+  const r=S.catalog.resources.length, cc=S.catalog.categories.length;
+  const el=$("#catInfo");
+  if(S.local){ el.textContent=t("catLocal"); return; }
+  if(!S.catLoaded){ el.textContent=t("catLoading"); return; }
+  el.innerHTML = r||cc ? esc(t("catInfo",{r:r,m:S.catalog.matTotal||""}))+(S.catalog.readAt?' · '+esc(t("readOn",{d:new Date(S.catalog.readAt).toLocaleDateString(LOCALE())})):"") : esc(t("catNone"));
+}
+
+/* ---------- démarrage ---------- */
+renderChrome(); renderList(); renderView();
+(async()=>{
+  const db = window.claude ? await window.claude.use("db") : null;
+  const user = window.claude ? await window.claude.use("user") : null;
+  S.user=user; if(user){ try{ S.uidSelf=await user.id(); }catch(e){} try{ S.isAdmin=!!(await user.canEdit()); }catch(e){} }
+  S.sample = window.claude ? await window.claude.use("sample") : null;
+  if(!db){ S.local=true; S.loaded=true; renderChrome(); renderList(); renderView(); return; }
+  S.db=db;
+  db.doc("catalog/resources").onSnapshot(s=>{ S.catLoaded=true; if(s.exists){ const d=s.data(); S.catalog.resources=d.resources||[]; S.catalog.readAt=d.readAt; } updCat(); if(S.draft&&S.tab==="formulaire") rerenderKeep(); }, ()=>{});
+  db.doc("catalog/materials").onSnapshot(s=>{ S.catLoaded=true; if(s.exists){ const d=s.data(); S.catalog.categories=d.categories||[]; S.catalog.matTotal=d.total; } updCat(); if(S.draft&&S.tab==="formulaire") rerenderKeep(); }, ()=>{});
+  db.doc("settings/app").onSnapshot(sn=>{ const d=sn.exists?sn.data():{}; ADMIN_LANG=LANGS.includes(d.defaultLang)?d.defaultLang:null; PJM_URL=typeof d.pjmUrl==="string"?d.pjmUrl:""; if(!personalLang()){ const nl=ADMIN_LANG||browserLang(); if(nl!==LANG){ LANG=nl; renderChrome(); renderList(); rerenderKeep(); } } if(S.view==="admin") renderAdmin(); else if(S.draft) rerenderKeep(); }, ()=>{});
+  db.collection("questions").onSnapshot(snap=>{ S.questions=snap.docs.map(d=>({...d.data(), id:d.id})); if(S.view==="admin") renderAdmin(); else if(S.draft&&(S.tab==="regles"||S.tab==="recap")) rerenderKeep(); }, ()=>{});
+  if(S.isAdmin) db.collection("suggestions").onSnapshot(snap=>{ S.suggestions=snap.docs.map(d=>({...d.data(), id:d.id})); if(S.view==="admin") renderAdmin(); }, ()=>{});
+  renderChrome();
+  let first=true;
+  db.collection("briefs").onSnapshot(snap=>{
+    for(const ch of snap.docChanges()){
+      if(ch.type==="removed"){ S.briefs.delete(ch.doc.id); if(ch.doc.id===S.sel){ S.sel=null; S.draft=null; renderView(); } continue; }
+      const d=ch.doc.data(); S.briefs.set(ch.doc.id,d);
+      if(ch.doc.id===S.sel && !S.dirty && !S.saving && d.updatedAt!==S.draft.updatedAt && d.updatedBy!==S.uidSelf){ S.draft=normalize(JSON.parse(JSON.stringify(d))); rerenderKeep(); toast(t("updatedOther")); }
+    }
+    S.loaded=true;
+    if(first){ first=false; let last=null; try{ last=localStorage.getItem("pjm.sel"); }catch(e){} if(last&&S.briefs.has(last)&&!S.sel&&S.creating===null) select(last); else renderView(); }
+    renderList();
+  }, ()=>{ setSave("error","dbLost"); });
+})();
+})();
+</script>
