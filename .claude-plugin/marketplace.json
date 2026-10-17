@@ -1,0 +1,14 @@
+{
+  "name": "aleyant-pjm",
+  "description": "Plugins Aleyant pour PrintJobManager (PJM)",
+  "owner": {
+    "name": "Aleyant"
+  },
+  "plugins": [
+    {
+      "name": "pjm-atelier-moteurs",
+      "source": "./plugins/pjm-atelier-moteurs",
+      "description": "Atelier Moteurs PJM : fiches de cahier des charges et construction des moteurs de prix PrintJobManager (NCalc) via Claude in Chrome. FR / ES / EN."
+    }
+  ]
+}
