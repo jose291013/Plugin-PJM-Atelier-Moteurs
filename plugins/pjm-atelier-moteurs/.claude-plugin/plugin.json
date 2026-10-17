@@ -1,7 +1,7 @@
 {
   "name": "pjm-atelier-moteurs",
   "displayName": "PJM – Atelier Moteurs",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "Atelier Moteurs PJM : fiches de cahier des charges et construction des moteurs de prix PrintJobManager (NCalc) via Claude in Chrome. FR / ES / EN.",
   "author": {
     "name": "Aleyant"
