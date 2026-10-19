@@ -1,0 +1,1090 @@
+<!-- =============================================================
+     Configurateur de prix — version MOTEUR PJM (v4)
+     Site : equipe3 (B2B)  ·  Produit : /product/etiquette
+     -------------------------------------------------------------
+     À coller dans le « Head (bas) » du site B2B. Ce bloc est chargé
+     sur TOUTES les pages : il ne s'active que sur les adresses listées
+     dans CONFIG.paths (et le CSS ne touche que des éléments créés par
+     le script, sauf la règle Kendo, limitée à body.pageName_etiquette).
+
+     Différences avec la version « calculateur Pressero » (v3) :
+       • Moteur PJM : chaque paramètre s'appelle Options[n].Value, n étant
+         sa position dans le moteur (Options[0] = champ caché technique).
+         Les quantités sont des input.PriceCalc_CalcParmInput, plus des
+         input.pricingGridQuantity (Q1, Q2…).
+       • Les <li> portent un GUID en classe : les sections se rangent donc
+         par LIBELLÉ (texte du label) ou par NUMÉRO d'option.
+       • Les valeurs des options sont des GUID : les images d'orientation
+         se repèrent par le TEXTE de l'option (↑ ↓ ← →).
+       • Chaque liste commence par « --Sélectionner-- » (select_one_id) :
+         cette entrée ne devient pas un bouton. Une liste qui n'a qu'un
+         seul vrai choix est sélectionnée automatiquement puis affichée
+         dans le récapitulatif.
+       • Pas de Pressero Script Server sur ce site : takeoverPss = false.
+       • 2 instances jQuery sur la page (window.jQuery ≠ kendo.jQuery) :
+         le script utilise celle de Kendo, comme en v3.
+     ============================================================= -->
+
+<style>
+/* 1. Design tokens — charte Aleyant (navy #1d3c89 / orange CTA) */
+.sp-scope {
+  --sp-navy:        #1d3c89;
+  --sp-navy-700:    #16306e;
+  --sp-navy-050:    #eef2fb;
+  --sp-accent:      #ea871b;
+  --sp-ink:         #101828;
+  --sp-ink-2:       #475467;
+  --sp-ink-3:       #98a2b3;
+  --sp-surface:     #ffffff;
+  --sp-surface-2:   #f8f9fc;
+  --sp-hairline:    #e4e7ee;
+  --sp-hairline-2:  #d0d5dd;
+  --sp-ok:          #12805c;
+  --sp-r-sm: 8px;  --sp-r-md: 12px;  --sp-r-lg: 18px;
+  --sp-shadow-1: 0 1px 2px rgba(16, 24, 40, .04);
+  --sp-shadow-3: 0 -1px 0 var(--sp-hairline), 0 -12px 32px -16px rgba(16, 24, 40, .18);
+  --sp-ring: 0 0 0 3px rgba(29, 60, 137, .18);
+  --sp-s1: 4px;  --sp-s2: 8px;  --sp-s3: 12px;
+  --sp-s4: 16px; --sp-s5: 24px; --sp-s6: 32px;
+}
+
+/* 2. Neutralisation — masque Kendo (cette page uniquement) */
+body.pageName_etiquette .k-loading-mask,
+body.pageName_etiquette .k-loading-image { display: none !important; }
+
+.sp-takeover .pss-segmented-buttons,
+.sp-takeover #pssFixedPriceContainer { display: none !important; }
+
+/* Total inline natif, redondant avec la barre collante (reste lisible par la barre). */
+.sp-hide-inline-total .calculatorTotalArea {
+  position: absolute !important;
+  width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 3. Sections */
+.sp-scope .sp-sections { list-style: none; margin: 0; padding: 0; }
+.sp-section {
+  margin: 0 0 var(--sp-s4);
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-hairline);
+  border-radius: var(--sp-r-lg);
+  box-shadow: var(--sp-shadow-1);
+  overflow: hidden;
+}
+.sp-section__head { display: flex; align-items: baseline; gap: var(--sp-s3); padding: var(--sp-s4) var(--sp-s5) 0; }
+.sp-section__idx {
+  flex: none; font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  color: var(--sp-navy); background: var(--sp-navy-050);
+  border-radius: 999px; padding: 3px 9px; line-height: 1.4;
+}
+.sp-section__title { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -.005em; color: var(--sp-ink); }
+.sp-section__body {
+  list-style: none; margin: 0;
+  padding: var(--sp-s4) var(--sp-s5) var(--sp-s5);
+  display: grid; gap: var(--sp-s5);
+}
+/* Champs côte à côte */
+.sp-section__body[data-cols="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--sp-s5); row-gap: var(--sp-s4);
+}
+.sp-section__body[data-cols="2"] .sp-input-wrap { max-width: 100%; }
+@media (max-width: 560px) { .sp-section__body[data-cols="2"] { grid-template-columns: 1fr; } }
+
+.sp-scope li.sp-field { margin: 0; padding: 0; border: 0; }
+.sp-scope li.sp-field > label {
+  display: block; margin: 0 0 var(--sp-s3);
+  font-size: 12px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--sp-ink-2);
+}
+
+/* 4. Champs numériques (moteur PJM : input.PriceCalc_CalcParmInput) */
+.sp-scope .sp-input-wrap { position: relative; max-width: 260px; }
+.sp-scope input.PriceCalc_CalcParmInput {
+  width: 100%;
+  height: 46px !important;
+  padding: 0 var(--sp-s4) !important;
+  font-size: 16px !important;
+  font-variant-numeric: tabular-nums;
+  color: var(--sp-ink) !important;
+  background: var(--sp-surface) !important;
+  border: 1px solid var(--sp-hairline-2) !important;
+  border-radius: var(--sp-r-md) !important;
+  box-shadow: var(--sp-shadow-1);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.sp-scope .sp-input-wrap.has-unit input.PriceCalc_CalcParmInput { padding-right: 52px !important; }
+.sp-scope input.PriceCalc_CalcParmInput:focus {
+  outline: none; border-color: var(--sp-navy) !important; box-shadow: var(--sp-ring);
+}
+.sp-scope .sp-unit {
+  position: absolute; top: 50%; right: 14px; transform: translateY(-50%);
+  font-size: 13px; font-weight: 600; color: var(--sp-ink-3); pointer-events: none;
+}
+
+/* 5. Boutons segmentés */
+.sp-scope .sp-source-select { display: none !important; }
+.sp-options { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.sp-options[data-variant="compact"] { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
+.sp-options[data-variant="image"]   { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 480px) { .sp-options[data-variant="image"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sp-options[data-variant="date"]    { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+
+.sp-option {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-s2); min-height: 46px; padding: 11px 14px; box-sizing: border-box;
+  font-size: 14px; font-weight: 500; line-height: 1.25; text-align: center;
+  color: var(--sp-ink); background: var(--sp-surface);
+  border: 1px solid var(--sp-hairline-2); border-radius: var(--sp-r-md);
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, color .15s ease;
+}
+.sp-option:hover { border-color: var(--sp-navy); background: var(--sp-navy-050); }
+.sp-option.is-active {
+  border-color: var(--sp-navy); background: var(--sp-navy-050);
+  color: var(--sp-navy-700); font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--sp-navy);
+}
+.sp-option:focus-within { outline: none; box-shadow: var(--sp-ring); }
+.sp-option.is-active:focus-within { box-shadow: inset 0 0 0 1px var(--sp-navy), var(--sp-ring); }
+.sp-option.is-disabled { opacity: .45; cursor: not-allowed; }
+.sp-option > input[type="radio"] {
+  position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; opacity: 0; pointer-events: none;
+}
+.sp-option__check {
+  position: absolute; top: 8px; right: 8px; width: 16px; height: 16px;
+  color: var(--sp-navy); opacity: 0; transform: scale(.7);
+  transition: opacity .15s ease, transform .15s ease;
+}
+.sp-option.is-active .sp-option__check { opacity: 1; transform: scale(1); }
+.sp-option__check svg { width: 100%; height: 100%; display: block; }
+
+.sp-options[data-variant="compact"] .sp-option { min-height: 42px; padding: 8px 4px; font-variant-numeric: tabular-nums; }
+.sp-options[data-variant="compact"] .sp-option__check { display: none; }
+
+.sp-options[data-variant="image"] .sp-option { flex-direction: column; padding: 10px 8px 8px; gap: 4px; min-height: 0; }
+.sp-options[data-variant="image"] .sp-option img {
+  width: 100%; max-width: 100%; aspect-ratio: 1 / 1; object-fit: contain; mix-blend-mode: multiply;
+}
+.sp-options[data-variant="image"] .sp-option__caption {
+  font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--sp-ink-3);
+}
+.sp-options[data-variant="image"] .sp-option__check { top: 6px; right: 6px; }
+.sp-options[data-variant="image"] .sp-option.is-active .sp-option__caption { color: var(--sp-navy-700); }
+
+.sp-options[data-variant="date"] .sp-option {
+  flex-direction: column; align-items: flex-start; justify-content: flex-start;
+  gap: 2px; min-height: 92px; padding: 14px 16px; text-align: left;
+}
+.sp-date__day   { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--sp-ink-3); }
+.sp-date__date  { font-size: 17px; font-weight: 700; color: var(--sp-ink); letter-spacing: -.01em; }
+.sp-option.is-active .sp-date__date { color: var(--sp-navy-700); }
+.sp-date__price { margin-top: auto; padding-top: 6px; font-size: 14px; font-weight: 600; color: var(--sp-ink-2); font-variant-numeric: tabular-nums; }
+.sp-date__tag {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 999px;
+  background: var(--sp-surface-2); color: var(--sp-ink-2); border: 1px solid var(--sp-hairline);
+}
+.sp-date__tag[data-kind="best"] { background: #e8f6f1; color: var(--sp-ok); border-color: #c6ebdf; }
+.sp-date__tag[data-kind="fast"] { background: #fdf1e3; color: #b26411; border-color: #f7ddbd; }
+.sp-options[data-variant="date"] .sp-option.is-active .sp-option__check { top: auto; bottom: 12px; right: 12px; }
+
+/* 6. Récapitulatif */
+.sp-summary { background: var(--sp-surface-2); }
+.sp-summary .sp-section__body { display: block; padding-top: var(--sp-s3); }
+.sp-summary__row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-s4); padding: 11px 0; border-bottom: 1px dashed var(--sp-hairline);
+}
+.sp-summary__row:last-child { border-bottom: 0; }
+.sp-summary__key   { font-size: 13px; color: var(--sp-ink-2); }
+.sp-summary__value { font-size: 15px; font-weight: 700; color: var(--sp-ink); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* 7. Chargement */
+.sp-progress {
+  position: fixed; top: 0; left: 0; height: 2px; width: 100%;
+  z-index: 2147483000; background: transparent; opacity: 0;
+  transition: opacity .2s ease; pointer-events: none;
+}
+.sp-progress.is-on { opacity: 1; }
+.sp-progress::after {
+  content: ""; display: block; height: 100%; width: 40%;
+  background: linear-gradient(90deg, transparent, var(--sp-navy), transparent);
+  animation: sp-slide 1.1s ease-in-out infinite;
+}
+@keyframes sp-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+.sp-scope.is-busy .sp-sections { opacity: .55; filter: saturate(.7); pointer-events: none; }
+.sp-scope .sp-sections { transition: opacity .2s ease, filter .2s ease; }
+.sp-price-skeleton {
+  display: inline-block; min-width: 96px; height: 1em; border-radius: var(--sp-r-sm);
+  background: linear-gradient(90deg, #e9ecf4 25%, #f4f6fa 50%, #e9ecf4 75%);
+  background-size: 200% 100%; animation: sp-shimmer 1.2s linear infinite; vertical-align: middle;
+}
+@keyframes sp-shimmer { to { background-position: -200% 0; } }
+
+/* 8. Barre de prix collante */
+#spPriceBar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1040;
+  padding: 12px max(16px, env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  box-shadow: var(--sp-shadow-3);
+  transform: translateY(110%);
+  transition: transform .28s cubic-bezier(.22, 1, .36, 1);
+}
+#spPriceBar.is-visible { transform: translateY(0); }
+.sp-bar__inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: var(--sp-s5); }
+.sp-bar__price { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sp-bar__label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--sp-ink-3); }
+.sp-bar__amount {
+  font-size: 26px; font-weight: 700; letter-spacing: -.02em;
+  color: var(--sp-ink); font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.sp-bar__amount.is-pending { font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--sp-ink-2); }
+.sp-bar__meta { flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--sp-ink-2); display: flex; align-items: center; gap: 7px; }
+.sp-bar__meta svg { flex: none; width: 15px; height: 15px; color: var(--sp-ink-3); }
+.sp-bar__meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-bar__cta {
+  flex: none; appearance: none; border: 0; border-radius: var(--sp-r-md);
+  padding: 13px 26px; font: inherit; font-size: 15px; font-weight: 700;
+  color: #fff; background: var(--sp-accent); cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16,24,40,.08), 0 8px 18px -10px rgba(234,135,27,.9);
+  transition: filter .15s ease, transform .1s ease;
+}
+.sp-bar__cta:hover { filter: brightness(1.05); }
+.sp-bar__cta:active { transform: translateY(1px); }
+.sp-bar__cta:focus-visible { outline: 3px solid rgba(234,135,27,.4); outline-offset: 2px; }
+#spPriceBar.sp-bar--cta-hidden .sp-bar__cta { display: none; }
+#spPriceBar.sp-bar--cta-hidden .sp-bar__meta { justify-content: flex-end; }
+@media (max-width: 640px) {
+  .sp-bar__inner { gap: var(--sp-s3); }
+  .sp-bar__meta { display: none; }
+  .sp-bar__amount { font-size: 22px; }
+  .sp-bar__cta { padding: 12px 18px; font-size: 14px; }
+  .sp-section__head { padding: var(--sp-s4) var(--sp-s4) 0; }
+  .sp-section__body { padding: var(--sp-s4); gap: var(--sp-s4); }
+}
+
+/* 9. Accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  .sp-progress::after, .sp-price-skeleton { animation: none; }
+  #spPriceBar, .sp-option, .sp-scope .sp-sections { transition: none; }
+}
+.sp-visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+</style>
+
+<script>
+/* =============================================================
+   Configurateur de prix — script unifié, version moteur PJM (v4)
+   ============================================================= */
+(function () {
+  'use strict';
+
+  /* -----------------------------------------------------------
+     CONFIGURATION
+     ----------------------------------------------------------- */
+  var CONFIG = {
+    // Pages où le script s'active (chemin, sans domaine, minuscules).
+    // Ajoutez d'autres produits PJM ici si besoin : '/product/autre-produit'
+    paths: ['/product/etiquette'],
+
+    root:           '#calcParmInputs',
+    selectSelector: 'select.PriceCalc_CalcParmSelect',
+    inputSelector:  'input.PriceCalc_CalcParmInput',
+    priceLabelId:   'pricingEngine_lblFinalPrice',
+    priceScope:     '#calcResults',
+    addToCartId:    'btnAddToCartButton',
+
+    // Entrée « --Sélectionner-- » ajoutée par PJM en tête de liste.
+    placeholderValues: ['select_one_id'],
+    placeholderText:   /^\s*-+\s*s[ée]lectionner\s*-+\s*$/i,
+
+    // Une liste avec un seul vrai choix : on le sélectionne automatiquement.
+    autoSelectSingle: true,
+
+    // Pas de Pressero Script Server sur equipe3.
+    takeoverPss: false,
+
+    hideInlineTotal: true,
+    groupSections:   true,
+    collectReadOnly: true,
+    loadingDelayMs:  250,
+    suppressKendoProgress: true,
+
+    ajaxFilter: function (settings) {
+      var url = (settings && settings.url) || '';
+      if (/address|shipping|vies|analytics|log/i.test(url)) { return false; }
+      return true;
+    },
+
+    i18n: {
+      calculating:  'Calcul en cours…',
+      priceExclTax: 'Total HT',
+      pricePending: 'Complétez vos choix',
+      summary:      'Récapitulatif',
+      addToCart:    'Ajouter au panier',
+      tagBest:      'Meilleur prix',
+      tagFast:      'Le plus rapide',
+      deliveryPrefix: 'Délai : '
+    },
+
+    /* Sections, dans l'ordre d'affichage.
+       `match` accepte :
+         - du texte  → recherché dans le LIBELLÉ du paramètre (sans accents,
+                       sans espaces ni ponctuation, en minuscules) ;
+         - un nombre → numéro d'option du moteur PJM (Options[n].Value).
+       Tout paramètre non reconnu tombe dans la dernière section.
+       `cols: 2` place les champs côte à côte.
+
+       Numérotation actuelle du moteur « Étiquette » (17/10/2026) :
+         1 Nombre de bobines            8 Pose
+         2 Quantité d'étiquettes/bobine 9 Orientation
+         3 Laize (mm)                  10 Type de tirage
+         4 Hauteur (mm)                11 Impression
+         5 Espace entre étiquettes     12 Support
+         6 Diamètre maximum bobine     13 Pelliculage
+         7 Diamètre du mandrin         14 Délai de livraison
+       Le libellé résiste mieux à un réordonnancement du moteur que le
+       numéro : c'est ce qui est utilisé ci-dessous. */
+    sections: [
+      { title: 'Quantité',                 match: ['nombredebobines', 'quantitedetiquettes'], cols: 2 },
+      { title: 'Format de l’étiquette',    match: ['laize', 'hauteur'],                       cols: 2 },
+      { title: 'Bobine',                   match: ['espaceentre', 'diametremaximum'],         cols: 2 },
+      { title: 'Mise en bobine',           match: ['mandrin', 'pose', 'orientation'] },
+      { title: 'Impression & finition',    match: ['typedetirage', 'impression', 'support', 'pelliculage'] },
+      { title: 'Délai de livraison',       match: ['delai', 'livraison'] },
+      { title: 'Options',                  match: [] }   // fourre-tout
+    ],
+
+    // Libellé du paramètre « délai », repris dans la barre de prix.
+    deliveryMatch: 'delai',
+
+    unitRules: [
+      { test: /\(\s*mm\s*\)|\bmm\b/i, unit: 'mm' }
+    ],
+
+    // Orientation : TEXTE de l'option -> visuel (les valeurs PJM sont des GUID).
+    optionImages: {
+      '↑': { src: 'https://aleyantspain.s3.us-east-1.amazonaws.com/Assets+pour+edocbuilder/o.png',   alt: 'Sortie vers le haut',   caption: 'Haut' },
+      '↓': { src: 'https://aleyantspain.s3.us-east-1.amazonaws.com/Assets+pour+edocbuilder/180.png', alt: 'Sortie vers le bas',    caption: 'Bas' },
+      '←': { src: 'https://aleyantspain.s3.us-east-1.amazonaws.com/Assets+pour+edocbuilder/-90.png', alt: 'Sortie vers la gauche', caption: 'Gauche' },
+      '→': { src: 'https://aleyantspain.s3.us-east-1.amazonaws.com/Assets+pour+edocbuilder/90.png',  alt: 'Sortie vers la droite', caption: 'Droite' }
+    }
+  };
+
+  /* -----------------------------------------------------------
+     GARDE : uniquement sur les pages produit listées.
+     ----------------------------------------------------------- */
+  var here = location.pathname.toLowerCase().replace(/\/+$/, '');
+  if (CONFIG.paths.indexOf(here) === -1) { return; }
+
+  if (!window.jQuery && !(window.kendo && window.kendo.jQuery)) {
+    // Kendo arrive en fin de page : on vérifiera à nouveau dans start().
+  }
+
+  /* CHOIX DE L'INSTANCE jQuery — ne pas simplifier.
+     Pressero embarque sa propre instance (kendo.jQuery) ; window.jQuery
+     est une seconde instance sur ce site. Un .trigger('change') posé sur
+     la mauvaise n'appelle aucun handler du moteur. On prend donc celle de
+     Kendo en priorité et on écoute l'Ajax sur toutes les instances. */
+  var $ = window.jQuery;
+  var jqInstances = [];
+
+  function resolveJquery() {
+    var list = [];
+    function add(j) {
+      if (j && j.fn && typeof j.fn.jquery === 'string' && list.indexOf(j) === -1) { list.push(j); }
+    }
+    add(window.kendo && window.kendo.jQuery);
+    add(window.jQuery);
+    add(window.$);
+    jqInstances = list;
+    $ = list[0] || window.jQuery;
+    return list;
+  }
+
+  var CHECK_SVG =
+    '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">' +
+    '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.793a1 1 0 ' +
+    '00-1.414-1.414L9 10.086 7.707 8.793a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" ' +
+    'clip-rule="evenodd"/></svg>';
+
+  var TRUCK_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/>' +
+    '<circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg>';
+
+  var MONTHS = ['janvier','février','mars','avril','mai','juin','juillet',
+                'août','septembre','octobre','novembre','décembre'];
+
+  var groupSeq = 0;
+  var inFlight = 0;
+  var loadingTimer = null;
+  var rafPending = false;
+  var isSyncing = false;
+  var isRefreshing = false;
+  var observedArea = null;
+  var autoSelected = {};     // nom du select -> déjà auto-sélectionné
+
+  function norm(s) {
+    return String(s || '').toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  /* -----------------------------------------------------------
+     Spécificités PJM : placeholder, numéro d'option, libellé
+     ----------------------------------------------------------- */
+  function isPlaceholder(o) {
+    return CONFIG.placeholderValues.indexOf(o.value) !== -1 || CONFIG.placeholderText.test(o.text);
+  }
+  function realOptions(select) {
+    return Array.prototype.filter.call(select.options, function (o) { return !isPlaceholder(o); });
+  }
+  function optionIndex(el) {
+    var m = /Options\[(\d+)\]/.exec((el && el.name) || '');
+    return m ? +m[1] : null;
+  }
+  function liLabel(li) {
+    return li ? ((li.querySelector('label') || {}).textContent || '').trim() : '';
+  }
+  function liIndex(li) {
+    return optionIndex(li.querySelector('select, input:not([type="hidden"])'));
+  }
+  function optKey(o) { return (o.text || '').trim(); }
+
+  /* 1) Neutralisations */
+  function neutralizeKendoProgress() {
+    if (CONFIG.suppressKendoProgress &&
+        window.kendo && kendo.ui && typeof kendo.ui.progress === 'function' &&
+        !kendo.ui.progress.__spOriginal) {
+      var original = kendo.ui.progress;
+      var noop = function () {};
+      noop.__spOriginal = original;
+      kendo.ui.progress = noop;
+    }
+  }
+
+  function purgePss() {
+    if (!CONFIG.takeoverPss) { return; }
+    document.documentElement.classList.add('sp-takeover');
+    document.body.classList.remove('pss-with-fixed-price');
+    var dead = document.querySelectorAll('.pss-segmented-buttons, #pssFixedPriceContainer');
+    for (var i = 0; i < dead.length; i++) { dead[i].remove(); }
+  }
+
+  /* Pas de clignotement : règle CSS posée tôt + MutationObserver sur le
+     parent stable (#pricingEngineArea), qui reconstruit avant la peinture. */
+  function injectSourceSelectRule() {
+    if (document.getElementById('sp-source-rule')) { return; }
+    var st = document.createElement('style');
+    st.id = 'sp-source-rule';
+    st.textContent = CONFIG.root + ' ' + CONFIG.selectSelector +
+      ':not(.sp-keep) { display: none !important; }';
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  function ensureContainerObserver() {
+    var root = document.querySelector(CONFIG.root);
+    var area = root && root.parentElement;
+    if (!area || observedArea === area) { return; }
+    observedArea = area;
+    new MutationObserver(function () {
+      if (isRefreshing) { return; }
+      var current = document.querySelector(CONFIG.root);
+      if (!current || current.__spDecorated) { return; }
+      refresh();
+    }).observe(area, { childList: true });
+  }
+
+  var EUR = (function () {
+    try { return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }); }
+    catch (e) { return null; }
+  })();
+
+  function prettyNumber(text, currency) {
+    var raw = String(text == null ? '' : text).trim();
+    var m = /^(-?\d+(?:[.,]\d+)?)\s*(€)?$/.exec(raw);
+    if (!m) { return raw; }
+    var n = parseFloat(m[1].replace(',', '.'));
+    if (isNaN(n)) { return raw; }
+    if ((currency || m[2]) && EUR) { return EUR.format(n); }
+    return n.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
+  }
+
+  /* 2) Champs numériques */
+  function decorateQuantityInputs(root) {
+    var inputs = root.querySelectorAll(CONFIG.inputSelector);
+    for (var k = 0; k < inputs.length; k++) {
+      var input = inputs[k];
+      if (input.__spDone) { continue; }
+      input.__spDone = true;
+
+      var labelText = liLabel(input.closest('li'));
+      var unit = '';
+      for (var i = 0; i < CONFIG.unitRules.length; i++) {
+        if (CONFIG.unitRules[i].test.test(labelText)) { unit = CONFIG.unitRules[i].unit; break; }
+      }
+
+      var wrap = document.createElement('div');
+      wrap.className = 'sp-input-wrap' + (unit ? ' has-unit' : '');
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      input.setAttribute('inputmode', 'decimal');
+
+      if (unit) {
+        var u = document.createElement('span');
+        u.className = 'sp-unit';
+        u.textContent = unit;
+        wrap.appendChild(u);
+      }
+    }
+  }
+
+  /* 3) <select> -> groupe de radios */
+  function signature(select) {
+    return Array.prototype.map.call(select.options, function (o) {
+      return o.value + '\u001F' + o.text + '\u001F' + (o.disabled ? 1 : 0);
+    }).join('\u001E');
+  }
+
+  function parseDateOption(text) {
+    var m = /^(.*?)\s*(?:→|->|=>)\s*(.+)$/.exec(text);
+    if (!m) { return null; }
+    var left = m[1].trim(), right = m[2].trim();
+    var d = /^(\S+)\s+(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(left);
+    if (!d) { return null; }
+    var monthName = MONTHS.filter(function (mm) { return norm(mm) === norm(d[3]); })[0];
+    var monthIdx = monthName ? MONTHS.indexOf(monthName) : -1;
+    var amount = parseFloat(right.replace(/[^\d.,]/g, '').replace(',', '.'));
+    return {
+      day: d[1], date: d[2] + ' ' + d[3] + ' ' + d[4], price: right,
+      amount: isNaN(amount) ? null : amount,
+      ts: monthIdx >= 0 ? new Date(+d[4], monthIdx, +d[2]).getTime() : null
+    };
+  }
+
+  function pickVariant(opts) {
+    if (opts.some(function (o) { return CONFIG.optionImages[optKey(o)]; })) { return 'image'; }
+    if (opts.length && opts.every(function (o) { return parseDateOption(o.text); })) { return 'date'; }
+    if (opts.length > 8 && opts.every(function (o) { return /^\s*[\d.,]+\s*$/.test(o.text); })) { return 'compact'; }
+    return 'default';
+  }
+
+  function buildOption(option, variant, name, meta) {
+    var el = document.createElement('label');
+    el.className = 'sp-option' + (option.disabled ? ' is-disabled' : '');
+
+    var input = document.createElement('input');
+    input.type = 'radio';
+    input.name = name;
+    input.value = option.value;
+    input.disabled = !!option.disabled;
+    el.appendChild(input);
+
+    if (variant === 'image' && CONFIG.optionImages[optKey(option)]) {
+      var img = CONFIG.optionImages[optKey(option)];
+      var pic = document.createElement('img');
+      pic.src = img.src;
+      pic.alt = '';
+      el.appendChild(pic);
+      var cap = document.createElement('span');
+      cap.className = 'sp-option__caption';
+      cap.textContent = img.caption || option.text;
+      el.appendChild(cap);
+      input.setAttribute('aria-label', img.alt || option.text);
+
+    } else if (variant === 'date') {
+      var d = parseDateOption(option.text);
+      var day = document.createElement('span'); day.className = 'sp-date__day';   day.textContent = d.day;
+      var dt  = document.createElement('span'); dt.className  = 'sp-date__date';  dt.textContent  = d.date;
+      var pr  = document.createElement('span'); pr.className  = 'sp-date__price'; pr.textContent  = prettyNumber(d.price, true);
+      el.appendChild(day); el.appendChild(dt); el.appendChild(pr);
+      input.setAttribute('aria-label', option.text);
+      if (meta && (meta.best === option.value || meta.fast === option.value)) {
+        var tag = document.createElement('span');
+        tag.className = 'sp-date__tag';
+        if (meta.best === option.value) { tag.setAttribute('data-kind', 'best'); tag.textContent = CONFIG.i18n.tagBest; }
+        else { tag.setAttribute('data-kind', 'fast'); tag.textContent = CONFIG.i18n.tagFast; }
+        el.appendChild(tag);
+      }
+
+    } else {
+      var span = document.createElement('span');
+      span.textContent = option.text;
+      el.appendChild(span);
+    }
+
+    var check = document.createElement('span');
+    check.className = 'sp-option__check';
+    check.innerHTML = CHECK_SVG;
+    el.appendChild(check);
+    return el;
+  }
+
+  function dateMeta(opts) {
+    var rows = opts.map(function (o) {
+      var d = parseDateOption(o.text);
+      return d ? { value: o.value, amount: d.amount, ts: d.ts } : null;
+    }).filter(Boolean);
+    if (rows.length < 2) { return null; }
+    var best = rows.reduce(function (a, b) { return (b.amount != null && (a.amount == null || b.amount < a.amount)) ? b : a; });
+    var fast = rows.reduce(function (a, b) { return (b.ts != null && (a.ts == null || b.ts < a.ts)) ? b : a; });
+    return { best: best && best.value, fast: fast && fast.value !== (best && best.value) ? fast.value : null };
+  }
+
+  /* Ne jamais garder de référence vers le <select> : la réponse de
+     /product/<x>/options/ remplace tout #calcParmInputs. Son name
+     (Options[n].Value) est stable : on le re-résout à chaque usage. */
+  function liveSelect(group) {
+    var el = null;
+    if (group.__spSelectId) { el = document.getElementById(group.__spSelectId); }
+    if ((!el || !el.isConnected) && group.__spSelectName) {
+      el = document.querySelector('select[name="' + group.__spSelectName.replace(/"/g, '\\"') + '"]');
+    }
+    return (el && el.isConnected) ? el : null;
+  }
+
+  function syncGroup(select, group) {
+    if (!select) { return; }
+    var value = select.value;
+    var options = group.querySelectorAll('.sp-option');
+    for (var i = 0; i < options.length; i++) {
+      var input = options[i].querySelector('input[type="radio"]');
+      var on = input.value === value;
+      input.checked = on;
+      options[i].classList.toggle('is-active', on);
+    }
+  }
+
+  function pushToEngine(select, value) {
+    if (!select || select.value === value) { return; }
+    isSyncing = true;
+    try {
+      // .trigger() jQuery (instance Kendo), pas un Event natif.
+      $(select).val(value).trigger('change');
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  // Un seul vrai choix et rien de sélectionné : on le sélectionne (une fois).
+  function maybeAutoSelect(select) {
+    if (!CONFIG.autoSelectSingle) { return false; }
+    var real = realOptions(select);
+    if (real.length !== 1) { return false; }
+    var current = select.options[select.selectedIndex];
+    if (current && !isPlaceholder(current)) { return false; }
+    if (autoSelected[select.name]) { return false; }
+    autoSelected[select.name] = true;
+    var value = real[0].value;
+    setTimeout(function () {
+      var live = document.querySelector('select[name="' + select.name.replace(/"/g, '\\"') + '"]');
+      pushToEngine(live, value);
+    }, 0);
+    return true;
+  }
+
+  function transformSelect(select) {
+    var sig = signature(select);
+
+    if (select.__spGroup && select.__spGroup.isConnected && select.__spSig === sig) {
+      syncGroup(select, select.__spGroup);
+      return;
+    }
+    if (select.__spGroup) { select.__spGroup.remove(); }
+
+    var real = realOptions(select);
+
+    // Un seul vrai choix => ligne de récapitulatif (cf. buildLayout).
+    if (CONFIG.collectReadOnly && real.length <= 1) {
+      select.classList.add('sp-source-select');
+      select.closest('li') && select.closest('li').classList.add('sp-is-readonly');
+      maybeAutoSelect(select);
+      select.__spSig = sig;
+      select.__spGroup = null;
+      return;
+    }
+
+    var variant = pickVariant(real);
+    var name = 'sp-opt-' + (++groupSeq);
+    var group = document.createElement('div');
+    group.className = 'sp-options';
+    group.setAttribute('data-variant', variant);
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', liLabel(select.closest('li')) || 'Option');
+
+    var meta = variant === 'date' ? dateMeta(real) : null;
+    real.forEach(function (o) { group.appendChild(buildOption(o, variant, name, meta)); });
+
+    select.classList.add('sp-source-select');
+    select.parentNode.insertBefore(group, select.nextSibling);
+    select.__spGroup = group;
+    select.__spSig = sig;
+    group.__spSelectId = select.id || '';
+    group.__spSelectName = select.name || '';
+
+    group.addEventListener('change', function (e) {
+      var input = e.target;
+      if (!input || input.type !== 'radio') { return; }
+      var opts = group.querySelectorAll('.sp-option');
+      for (var i = 0; i < opts.length; i++) { opts[i].classList.remove('is-active'); }
+      input.closest('.sp-option').classList.add('is-active');
+
+      var live = liveSelect(group);
+      if (!live) { console.warn('[SP] select introuvable pour ce groupe : recalcul impossible.'); return; }
+      pushToEngine(live, input.value);
+    });
+
+    $(select).off('change.sp').on('change.sp', function () {
+      if (!isSyncing) { syncGroup(liveSelect(group), group); }
+    });
+
+    syncGroup(select, group);
+  }
+
+  /* 4) Sections + récapitulatif */
+  function sectionFor(li, buckets) {
+    var key = norm(liLabel(li));
+    var idx = liIndex(li);
+    return buckets.filter(function (b) {
+      return b.def.match.some(function (m) {
+        if (typeof m === 'number') { return idx === m; }
+        return key.indexOf(norm(m)) !== -1;
+      });
+    })[0];
+  }
+
+  function buildLayout(root) {
+    var list = root.querySelector('ol, ul');
+    if (!list || list.__spLaidOut) { return; }
+
+    // Les <li> visibles (Options[0] est un <li style="display:none"> technique).
+    var items = Array.prototype.filter.call(list.children, function (el) {
+      return el.tagName === 'LI' && el.querySelector('select, input:not([type="hidden"])');
+    });
+    if (!items.length) { return; }
+
+    items.forEach(function (li) { li.classList.add('sp-field'); });
+    if (!CONFIG.groupSections) { list.__spLaidOut = true; return; }
+
+    var readOnly = CONFIG.collectReadOnly ? items.filter(function (li) {
+      var s = li.querySelector(CONFIG.selectSelector);
+      return s && realOptions(s).length <= 1;
+    }) : [];
+    var actionable = items.filter(function (li) { return readOnly.indexOf(li) === -1; });
+
+    var buckets = CONFIG.sections.map(function (s) { return { def: s, items: [] }; });
+    var fallback = buckets[buckets.length - 1];
+    actionable.forEach(function (li) { (sectionFor(li, buckets) || fallback).items.push(li); });
+
+    list.classList.add('sp-sections');
+    var index = 0;
+
+    buckets.forEach(function (b) {
+      if (!b.items.length) { return; }
+      index++;
+      var section = document.createElement('li');
+      section.className = 'sp-section';
+      var head = document.createElement('div');
+      head.className = 'sp-section__head';
+      head.innerHTML = '<span class="sp-section__idx">' + String(index).padStart(2, '0') + '</span>' +
+        '<h3 class="sp-section__title"></h3>';
+      head.querySelector('.sp-section__title').textContent = b.def.title;
+      var body = document.createElement('ul');
+      body.className = 'sp-section__body';
+      body.setAttribute('data-cols', String(b.def.cols || 1));
+      b.items.forEach(function (li) { body.appendChild(li); });
+      section.appendChild(head);
+      section.appendChild(body);
+      list.appendChild(section);
+    });
+
+    if (readOnly.length) {
+      var sum = document.createElement('li');
+      sum.className = 'sp-section sp-summary';
+      sum.innerHTML =
+        '<div class="sp-section__head"><span class="sp-section__idx">✓</span>' +
+        '<h3 class="sp-section__title"></h3></div><ul class="sp-section__body"></ul>';
+      sum.querySelector('.sp-section__title').textContent = CONFIG.i18n.summary;
+      var sumBody = sum.querySelector('.sp-section__body');
+
+      readOnly.forEach(function (li) {
+        li.classList.add('sp-summary__li');
+        li.style.display = 'none';          // le <select> reste dans le formulaire
+        sumBody.appendChild(li);
+        var row = document.createElement('li');
+        row.className = 'sp-summary__row';
+        var key = document.createElement('span');
+        key.className = 'sp-summary__key';
+        key.textContent = liLabel(li);
+        var val = document.createElement('span');
+        val.className = 'sp-summary__value';
+        sumBody.appendChild(row);
+        row.appendChild(key);
+        row.appendChild(val);
+        li.__spMirror = val;
+      });
+      list.appendChild(sum);
+    }
+
+    list.__spLaidOut = true;
+  }
+
+  function refreshSummaryValues(root) {
+    var rows = root.querySelectorAll('.sp-summary__li');
+    for (var i = 0; i < rows.length; i++) {
+      var li = rows[i];
+      var sel = li.querySelector(CONFIG.selectSelector);
+      if (li.__spMirror && sel) {
+        var opt = sel.options[sel.selectedIndex];
+        var real = realOptions(sel);
+        var txt = (opt && !isPlaceholder(opt)) ? opt.text : (real[0] ? real[0].text : '—');
+        txt = prettyNumber(txt);
+        if (li.__spMirror.textContent !== txt) { li.__spMirror.textContent = txt; }
+      }
+    }
+  }
+
+  /* 5) Barre de prix collante */
+  function priceEl() { return document.getElementById(CONFIG.priceLabelId); }
+
+  function ensurePriceBar() {
+    if (document.getElementById('spPriceBar')) { return; }
+    var bar = document.createElement('div');
+    bar.id = 'spPriceBar';
+    bar.className = 'sp-scope';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', CONFIG.i18n.priceExclTax);
+    bar.innerHTML =
+      '<div class="sp-bar__inner">' +
+        '<div class="sp-bar__price">' +
+          '<span class="sp-bar__label"></span>' +
+          '<span class="sp-bar__amount" id="spBarAmount" aria-live="polite"></span>' +
+        '</div>' +
+        '<div class="sp-bar__meta">' + TRUCK_SVG + '<span id="spBarMeta"></span></div>' +
+        '<button type="button" class="sp-bar__cta" id="spBarCta"></button>' +
+      '</div>';
+    bar.querySelector('.sp-bar__label').textContent = CONFIG.i18n.priceExclTax;
+    bar.querySelector('#spBarCta').textContent = CONFIG.i18n.addToCart;
+    document.body.appendChild(bar);
+
+    bar.querySelector('#spBarCta').addEventListener('click', function () {
+      var real = document.getElementById(CONFIG.addToCartId);
+      if (real) { real.click(); }
+      else { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
+    });
+  }
+
+  function deliveryText() {
+    var root = document.querySelector(CONFIG.root);
+    if (!root || !CONFIG.deliveryMatch) { return ''; }
+    var lis = root.querySelectorAll('li');
+    for (var i = 0; i < lis.length; i++) {
+      if (norm(liLabel(lis[i])).indexOf(norm(CONFIG.deliveryMatch)) === -1) { continue; }
+      var s = lis[i].querySelector('select');
+      var o = s && s.options[s.selectedIndex];
+      if (o && !isPlaceholder(o)) { return CONFIG.i18n.deliveryPrefix + o.text; }
+    }
+    var dated = document.querySelector('.sp-options[data-variant="date"] .sp-option.is-active .sp-date__date');
+    return dated ? 'Livraison estimée le ' + dated.textContent : '';
+  }
+
+  function updatePriceBar() {
+    var bar = document.getElementById('spPriceBar');
+    var src = priceEl();
+    if (!bar || !src) { return; }
+
+    var amount = bar.querySelector('#spBarAmount');
+    if (src.querySelector('.sp-price-skeleton')) {
+      if (!amount.querySelector('.sp-price-skeleton')) {
+        amount.innerHTML = '<span class="sp-price-skeleton"></span>';
+      }
+      amount.classList.remove('is-pending');
+    } else {
+      var text = (src.textContent || '').trim();
+      // Le moteur affiche « #.## » tant que le prix n'est pas calculable.
+      var pending = !/\d/.test(text);
+      var shown = pending ? CONFIG.i18n.pricePending : text;
+      if (amount.textContent !== shown) { amount.textContent = shown; }
+      amount.classList.toggle('is-pending', pending);
+    }
+
+    var meta = bar.querySelector('#spBarMeta');
+    var metaText = deliveryText();
+    if (meta.textContent !== metaText) { meta.textContent = metaText; }
+    bar.querySelector('.sp-bar__meta').style.display = metaText ? '' : 'none';
+
+    bar.classList.add('is-visible');
+    document.body.style.paddingBottom = bar.offsetHeight + 'px';
+  }
+
+  var watchedCta = null;
+  function watchNativeCta() {
+    var real = document.getElementById(CONFIG.addToCartId);
+    var bar = document.getElementById('spPriceBar');
+    if (!bar) { return; }
+    if (!real || !window.IntersectionObserver) { bar.classList.remove('sp-bar--cta-hidden'); return; }
+    if (watchedCta === real) { return; }
+    watchedCta = real;
+    new IntersectionObserver(function (entries) {
+      if (watchedCta !== real) { return; }
+      var seen = entries[0] && entries[0].isIntersecting;
+      bar.classList.toggle('sp-bar--cta-hidden', !!seen);
+      document.body.style.paddingBottom = bar.offsetHeight + 'px';
+    }, { threshold: 0.35 }).observe(real);
+  }
+
+  var observedPriceScope = null;
+  function ensurePriceObserver() {
+    var scope = document.querySelector(CONFIG.priceScope) || (priceEl() && priceEl().parentNode);
+    if (!scope) { return; }
+    if (observedPriceScope === scope && scope.isConnected) { return; }
+    observedPriceScope = scope;
+    new MutationObserver(function () {
+      if (observedPriceScope !== scope) { return; }
+      updatePriceBar();
+    }).observe(scope, { childList: true, characterData: true, subtree: true });
+  }
+
+  /* 6) Chargement */
+  function progressEl() {
+    var p = document.getElementById('spProgress');
+    if (!p) {
+      p = document.createElement('div');
+      p.id = 'spProgress';
+      p.className = 'sp-progress sp-scope';
+      document.body.appendChild(p);
+    }
+    return p;
+  }
+
+  function showLoading() {
+    progressEl().classList.add('is-on');
+    $(CONFIG.root).addClass('is-busy').attr('aria-busy', 'true');
+    clearTimeout(loadingTimer);
+    loadingTimer = setTimeout(function () {
+      var el = priceEl();
+      if (el && !el.querySelector('.sp-price-skeleton')) {
+        el.innerHTML = '<span class="sp-price-skeleton"></span>' +
+          '<span class="sp-visually-hidden">' + CONFIG.i18n.calculating + '</span>';
+      }
+    }, CONFIG.loadingDelayMs);
+  }
+
+  function hideLoading() {
+    clearTimeout(loadingTimer);
+    progressEl().classList.remove('is-on');
+    $(CONFIG.root).removeClass('is-busy').attr('aria-busy', 'false');
+  }
+
+  /* 7) Cycle de vie */
+  function schedule() {
+    if (rafPending) { return; }
+    rafPending = true;
+    window.requestAnimationFrame(function () { rafPending = false; refresh(); });
+  }
+
+  function refresh() {
+    var root = document.querySelector(CONFIG.root);
+    if (!root || isRefreshing) { return; }
+    isRefreshing = true;
+
+    try {
+      root.classList.add('sp-scope');
+      purgePss();
+      decorateQuantityInputs(root);
+
+      var selects = root.querySelectorAll(CONFIG.selectSelector);
+      var built = 0;
+      for (var i = 0; i < selects.length; i++) {
+        if ($(selects[i]).data('kendoDropDownList')) { selects[i].classList.add('sp-keep'); continue; }
+        try { transformSelect(selects[i]); built++; }
+        catch (err) { console.error('[SP] transformation impossible', err, selects[i]); }
+      }
+
+      buildLayout(root);
+      refreshSummaryValues(root);
+      ensurePriceBar();
+      ensurePriceObserver();
+      ensureContainerObserver();
+      watchNativeCta();
+      updatePriceBar();
+
+      if (CONFIG.hideInlineTotal) { document.documentElement.classList.add('sp-hide-inline-total'); }
+      root.__spDecorated = true;
+
+      // Règle de masquage posée seulement après une construction réussie :
+      // si le script échoue, les listes natives restent utilisables.
+      if (built > 0) { injectSourceSelectRule(); }
+    } finally {
+      isRefreshing = false;
+    }
+  }
+
+  function bindAjaxHooks() {
+    jqInstances.forEach(function (jq) {
+      if (jq.__spAjaxBound) { return; }
+      jq.__spAjaxBound = true;
+      jq(document).on('ajaxSend.sp', function (e, xhr, settings) {
+        if (!CONFIG.ajaxFilter(settings)) { return; }
+        if (inFlight === 0) { showLoading(); }
+        inFlight++;
+      });
+      jq(document).on('ajaxComplete.sp', function (e, xhr, settings) {
+        if (!CONFIG.ajaxFilter(settings)) { return; }
+        inFlight = Math.max(0, inFlight - 1);
+        if (inFlight > 0) { return; }
+        hideLoading();
+        schedule();
+        sweepPss();
+      });
+    });
+  }
+
+  function sweepPss() {
+    if (!CONFIG.takeoverPss) { return; }
+    [0, 300, 1200].forEach(function (ms) { setTimeout(purgePss, ms); });
+  }
+
+  window.SegmentedPricing = { config: CONFIG, refresh: refresh };
+  window.intCalcFinish = refresh;   // rétro-compatibilité
+
+  function start() {
+    if (!resolveJquery().length) {
+      console.error('[SP] jQuery absent : le bloc ne s\'initialise pas.');
+      return;
+    }
+    neutralizeKendoProgress();
+    bindAjaxHooks();
+    refresh();
+    ensurePriceObserver();
+    ensureContainerObserver();
+    window.addEventListener('resize', updatePriceBar, { passive: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+
+  // Kendo peut arriver après le DOMContentLoaded : on se raccroche à la
+  // bonne instance si elle n'existait pas encore.
+  window.addEventListener('load', function () {
+    var previous = $;
+    resolveJquery();
+    neutralizeKendoProgress();
+    bindAjaxHooks();
+    if (previous !== $) { refresh(); }
+  });
+})();
+</script>
