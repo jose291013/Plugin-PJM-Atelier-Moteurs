@@ -31,7 +31,7 @@
   };
 
   var path = (g.location.pathname || '').toLowerCase().replace(/\/+$/, '');
-  if (CONFIG.paths.indexOf(path) === -1) { return; }
+  if (!CONFIG.paths.some(function (p) { return path === p || path.indexOf(p + '/') === 0; })) { return; }   // fiche produit ou édition depuis le panier (/product/x/{id})
 
   var last = null;        // dernier résultat de calcul PJM
   var rendering = false;

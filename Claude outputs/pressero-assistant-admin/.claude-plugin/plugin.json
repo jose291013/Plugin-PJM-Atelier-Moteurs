@@ -1,8 +1,0 @@
-{
-  "name": "pressero-assistant-admin",
-  "displayName": "Pressero – Assistant Admin",
-  "version": "0.2.0",
-  "description": "Pilote l'admin Pressero (Aleyant) via Claude in Chrome : scripts du head bas, configurateurs de produits PJM, produits (duplication, tarification APJM, import Excel), catégories et organisation du catalogue. FR / ES / EN.",
-  "author": { "name": "Aleyant" },
-  "keywords": ["Pressero", "Aleyant", "web-to-print", "PrintJobManager", "PJM", "APJM", "e-commerce", "imprimerie"]
-}
