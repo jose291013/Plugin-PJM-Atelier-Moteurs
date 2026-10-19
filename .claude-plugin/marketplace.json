@@ -1,6 +1,6 @@
 {
   "name": "aleyant-pjm",
-  "description": "Plugins Aleyant pour PrintJobManager (PJM)",
+  "description": "Plugins Aleyant pour PrintJobManager (PJM) et Pressero",
   "owner": {
     "name": "Aleyant"
   },
@@ -9,6 +9,11 @@
       "name": "pjm-atelier-moteurs",
       "source": "./plugins/pjm-atelier-moteurs",
       "description": "Atelier Moteurs PJM : fiches de cahier des charges et construction des moteurs de prix PrintJobManager (NCalc) via Claude in Chrome. FR / ES / EN."
+    },
+    {
+      "name": "pressero-assistant-admin",
+      "source": "./plugins/pressero-assistant-admin",
+      "description": "Pilote l'admin Pressero (Aleyant) via Claude in Chrome : scripts du head bas, configurateurs de produits PJM, produits (duplication, tarification APJM, import Excel), catégories et organisation du catalogue. FR / ES / EN."
     }
   ]
 }

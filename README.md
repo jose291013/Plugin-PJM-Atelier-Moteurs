@@ -1,11 +1,14 @@
 # Plugin PJM – Atelier Moteurs (Aleyant)
 
-Marketplace Cowork contenant le plugin **pjm-atelier-moteurs** : décrivez vos moteurs de prix PrintJobManager dans l'« Atelier », puis laissez Claude les construire, les importer, les mettre à jour ou reprendre un calculateur Excel / Pressero dans votre PJM via Claude in Chrome. Interface et moteurs en français, espagnol ou anglais.
+Marketplace Cowork contenant deux plugins.
+
+- **pressero-assistant-admin** : pilote l'admin Pressero (scripts du head bas, configurateurs de produits PJM, récapitulatif avec attributs PJM et date de livraison, produits, import Excel, catégories). Détails : [plugins/pressero-assistant-admin/README.md](plugins/pressero-assistant-admin/README.md).
+- **pjm-atelier-moteurs** : décrivez vos moteurs de prix PrintJobManager dans l'« Atelier », puis laissez Claude les construire, les importer, les mettre à jour ou reprendre un calculateur Excel / Pressero dans votre PJM via Claude in Chrome. Interface et moteurs en français, espagnol ou anglais.
 
 ## Installer
 1. Application Claude (Cowork) → **Personnaliser** → **Plugins** → **Ajouter une marketplace**.
 2. Adresse : `jose291013/Plugin-PJM-Atelier-Moteurs`.
-3. Installez **pjm-atelier-moteurs**. Activez **Synchroniser automatiquement** pour recevoir les nouvelles versions.
+3. Installez **pjm-atelier-moteurs** et/ou **pressero-assistant-admin**. Activez **Synchroniser automatiquement** pour recevoir les nouvelles versions.
 
 Prérequis : abonnement Claude payant, application de bureau Claude, Google Chrome avec l'extension Claude in Chrome connectée, compte administrateur PJM.
 
