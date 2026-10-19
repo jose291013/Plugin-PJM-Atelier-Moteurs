@@ -18,7 +18,7 @@
 | mettre-a-jour-moteur-pjm | Applies the changes of a sheet to its existing engine | « Mets à jour le moteur Bâche » |
 | importer-moteur-pjm | Turns an existing PJM engine into an Atelier sheet | « Importe le moteur …/ProductEngines/Edit/… » |
 | reprendre-excel-pjm | Rebuilds an Excel / Pressero price calculator in PJM (creates missing machines and papers), tests against the Excel | « Reproduis ce moteur Excel dans PJM » |
-| moteurs-pjm-expert | NCalc / PJM formula expertise, used by all the others | « Corrige cette formule PJM » |
+| moteurs-pjm-expert | NCalc / PJM formula expertise and attributes returned to Pressero, used by all the others | « Corrige cette formule PJM » |
 
 ## Getting started
 1. « Crée l'Atelier Moteurs PJM pour {client} » → answer name, PJM address, language.
@@ -38,6 +38,7 @@
 Claude asks before the first write in PJM, never deletes in PJM without explicit confirmation, never enters credentials, and asks before changing a shared material record.
 
 ## Version
+1.5.0 – 19/10/2026 : attributs PJM renvoyés à Pressero (création des clés, rattachement, limite 500 caractères, ErrorCode 433), `SHIP_DAYS` par délai, quantité technique S1 pour l'heure limite ; reprise Excel : résultats affichés au client via attributs + script Pressero (plugin `pressero-assistant-admin`).
 1.4.1 – 17/10/2026 : matériaux en quantités réelles (mètres linéaires) et marge dans une ligne « Marge » séparée (exemple Étiquettes mis à jour).
 1.4.0 – 17/10/2026 : nouveau skill reprendre-excel-pjm (Excel / Pressero → PJM, simulateur NCalc), pièges PJM validés (Decimal × Double, division par les poses, ToQty matériau, poids), création de ressources / procédés / matériaux, matériaux par laize au mètre linéaire.
 1.3.0 – 17/10/2026 : position des étapes dans le rapport selon le flux de l'atelier, ordre des questions du formulaire automatique, groupe de prix laissé à PJM, fond perdu total dans CalcNup, masquage selon le papier choisi, formats fermés + personnalisé.

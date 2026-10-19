@@ -16,6 +16,7 @@ Answer in the user's language (French, Spanish or English).
 - A choice cannot be hidden according to a quantity. Each formula is limited to 1400 characters.
 - Quantity names: Q1–Q5, R1–R5, P1–P5, S1–S5 (no Q6). Quantities are integers.
 - How PJM uses the poses field (validated 17/10/2026): production line → final quantity = Ceiling(formula / Nup()) (multiply by `Nup()` when the field holds something else; count in cents with a 0,01 € process to avoid rounding to the unit); material line with a formula in poses → quantity not divided; material line with a plain number (e.g. `2`) → divided. In « Calcul du poids », `Nup()` is 1: never use it there.
+- **Attributes** (key + NCalc value, on a component or a choice) are returned with the price; Pressero reads them (recap display, `SHIP_DAYS` for the ship date). Value ≤ 500 characters, no two identical values in one choice (ErrorCode 433), global key created first in Paramètres → Attributs. PJM has no date/time: pass dynamic data through a hidden technical quantity (S1). Details: `references/attributs.md`.
 - Material lines of a choice need ToQty > 0 (999999), otherwise they are ignored; a line whose quantity is 0 does not appear. The weight formula is ignored when the material's WeightPer is 0 (PJM rounds it to 2 decimals: enter it for 1000 items).
 
 ## Proven formulas
@@ -46,5 +47,6 @@ Answer in the user's language (French, Spanish or English).
 - `references/atelier-donnees.md`: data model of the Atelier app (briefs, catalog, questions, settings).
 - `references/ncalc.md`: NCalc syntax summary.
 - `references/consommation.md`: usage rules (one task per conversation, estimate before starting, measured values).
-- `references/scripts-pjm.md`: verified JavaScript helpers (choices, production and material lines, suppressions, reading an engine, tests, creating resources / processes / materials).
+- `references/scripts-pjm.md`: verified JavaScript helpers (choices, production and material lines, suppressions, reading an engine, tests, creating resources / processes / materials, attributes).
+- `references/attributs.md`: attributes returned to Pressero, limits, endpoints, `SHIP_DAYS`, technical quantity S1 for the cut-off hour.
 - Skill `reprendre-excel-pjm`: rebuild an Excel / Pressero calculator in PJM.

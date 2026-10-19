@@ -62,3 +62,11 @@ Autres lignes : remplacer 220 par la laize, le prix au ml (`5/136840E-6` → pri
 ## Limites
 - Non reproductible : date estimée de livraison, blocage « 50 à N étiquettes par bobine » selon le diamètre, arrondi Excel au 0,1 € supérieur.
 - La quantité matériau affichée = ml × coefficient (marge intégrée dans les formules) ; l'instruction de la ligne le précise.
+
+## Attributs et récapitulatif Pressero (19/10/2026)
+- Quantité technique **S1** « Jours ajoutés (heure limite) - champ technique » (0–10, défaut 0), écrite par le script Pressero.
+- Calcul « Impression et bobinage » : `ETQ_NB_BOBINES` Q1, `ETQ_QTE_PAR_BOBINE` Q2, `ETQ_QTE_TOTALE` Q1*Q2, `ETQ_LAIZE_ETIQ_MM` Q3, `ETQ_PAS_MM` Q4+Q5, `ETQ_DIAM_MAX_MM` R1.
+- Mandrin : `ETQ_MANDRIN_MM` 76 / 40. Support : `ETQ_EPAISSEUR_SUPPORT_UM` 149 / 151, `ETQ_KG_M2_SUPPORT` 0.315 / 0.145. Pelliculage : `ETQ_EPAISSEUR_FILM_UM` 0 / 12 / 17, `ETQ_POIDS_FILM_KG` 0 / `Q2*(Q4+Q5)*(Q3+5)*16E-9` / `…*27E-9`.
+- Délai : `ETQ_JOURS_OUVRES` 5 / 3 / 1, `SHIP_DAYS` `5+S1` / `3+S1` / `1+S1`, `SHIP_DAYS_OUT_STOCK` `S1+5` / `S1+3` / `S1+1` (valeurs écrites autrement à cause de l'ErrorCode 433).
+- La formule de laize (792 car.) dépasse 500 caractères → laize, mètres, diamètre final (mandrin choisi, en mm), maximum par bobine et date estimée sont calculés par le script Pressero (bloc « AFFICHER LES ATTRIBUTS PJM DANS LE RECAPITULATIF ETIQUETTE », equipe3).
+- Diamètre : D = 2·√(Q2·(H+E)·e/π + (mandrin/2)²) mm, e = (support + film) µm / 1000 ; max/bobine = π·((min(Dmax, 250)/2)² − (mandrin/2)²) / e / (H+E).

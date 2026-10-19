@@ -17,7 +17,7 @@ Same as `construire-moteur-pjm`: never type PJM credentials, show the plan and g
 ## 1. Read the Excel (cloud workspace)
 - Copy the upload into its own folder; convert `.xls` with `soffice --headless --convert-to xlsx`.
 - Dump every sheet with openpyxl twice (formulas, and `data_only=True` values). Ask the user, if not given, where the form (inputs), the dropdown lists, the price and the weight cells are.
-- Follow the chain from the price cell back to the inputs. Note lookup tables (VLOOKUP exact = choices / attributes; VLOOKUP approximate = tiers → nested `if`), fixed costs, minimums, rounding, time/date-based cells (not reproducible), validation messages (only static min/max in PJM).
+- Follow the chain from the price cell back to the inputs. Note lookup tables (VLOOKUP exact = choices / attributes; VLOOKUP approximate = tiers → nested `if`), fixed costs, minimums, rounding, time/date-based cells (not reproducible in PJM), validation messages (only static min/max in PJM), and every result the Excel shows the customer besides the price (total quantity, roll diameter, warnings, delivery date).
 
 ## 2. Replicate and verify before touching PJM
 - Write the model in Python (`model(inputs) → price, weight, intermediate choices`).
@@ -32,6 +32,9 @@ Same as `construire-moteur-pjm`: never type PJM credentials, show the plan and g
 - Keep material quantities real (m², ml, sheets): the workshop reads them. A margin that varies with the quantity goes in a separate « Marge » production line (0,01 € process, cents) in the same choice, never in the material quantity.
 - Write every NCalc formula from the Python model, then evaluate the formulas themselves with `scripts/ncalc_sim.py` on ≥ 3 000 random cases against the model (0 differences, length ≤ 1400, spaces around `<`, no decimal literal: `45E-1`, not `4.5`).
 
+## 3b. Results shown to the customer (attributes)
+The Excel often displays more than the price. Return the raw data as PJM attributes (`moteurs-pjm-expert/references/attributs.md`: quantities, thicknesses, weights per choice, `SHIP_DAYS` per lead time) and let a Pressero page script compute and display the rest (plugin `pressero-assistant-admin`, skill `recap-attributs-pjm`). Delivery date with a cut-off hour: technical quantity S1 written by the page script, `SHIP_DAYS = N+S1`, French holidays in the Pressero company calendar.
+
 ## 4. Catalogue
 - Read resources (`/Production/_Index`), their processes (`/Processes/Steps/{id}`) and materials (`/Materials/_Index`). Missing machine → create a resource + processes; missing paper → create materials (procedures in `scripts-pjm.md` « Créer ressources, procédés et matériaux »), only if the user asked for it or confirms.
 - Materials sold by m² or linear metre: dimensions W × 1000 mm; enter cost for 100 000 items and weight for 1000 items (PJM rounds both to 2 decimals).
@@ -45,4 +48,4 @@ Show the plan (catalogue creations, components, choices, lines with positions, t
 - If a line is missing or equals 1, look first at the pitfalls of `procedure-construction.md` « Pièges validés le 17/10/2026 ».
 
 ## 7. Finish
-Report: engine link, objects created in the catalogue, test table (expected / PJM / chosen material / weight), what PJM cannot reproduce (dates, dynamic validations, display rounding), materials left unused. Save a note of the engine in the Cowork project if one is attached. Optionally offer to import the engine into the Atelier (`importer-moteur-pjm`).
+Report: engine link, objects created in the catalogue, attributes and what the Pressero script must compute, test table (expected / PJM / chosen material / weight), what PJM cannot reproduce (dates, dynamic validations, display rounding), materials left unused. Save a note of the engine in the Cowork project if one is attached. Optionally offer to import the engine into the Atelier (`importer-moteur-pjm`).

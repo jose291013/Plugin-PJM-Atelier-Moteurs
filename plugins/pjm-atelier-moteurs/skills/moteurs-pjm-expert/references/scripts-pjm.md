@@ -185,3 +185,26 @@ async function editMaterial(id, changes){ const d = await H.doc('/Materials/Edit
 - Open it with `document.getElementById('btnTest').click()` on the engine edit page; price group: `#ddlPriceGroups` / `#PriceGroupId` (choose the « + 0 % » group if any); compute: `#GetPrice`.
 - Reload the edit page after changing the engine: the Test page keeps the previous definition.
 - Run one case per JavaScript call (each takes ~10 s; several in one call exceed the tool timeout). Read the results with `document.body.innerText` after « Remise à zéro »: materials show `size`, `numberup`, `qty`, `weight`, `Coût`.
+
+## Attributes (keys, attachment) – validated 19/10/2026
+Rules and endpoints: `references/attributs.md`. Reference code (run on the PJM tab; the attachment form is read from PJM itself so hidden fields such as `SubscriberId` and `cid` are kept):
+```js
+// 1. global key (once per instance)
+const p2 = n => String(n).padStart(2, '0'), d = new Date();
+const createDate = `${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+const tok = document.querySelector('input[name=__RequestVerificationToken]')?.value;
+const fk = new FormData();
+Object.entries({ Id: '00000000-0000-0000-0000-000000000000', AttributeKey: 'ETQ_QTE_TOTALE', AttributeType: 0,
+  StandardKeyType: 0, IsDeleted: false, CreateDate: createDate }).forEach(([k, v]) => fk.append(k, v));
+if (tok) fk.append('__RequestVerificationToken', tok);
+await fetch('/Attributes/Save', { method: 'POST', body: fk });   // then read the grid to get the AttributeId
+
+// 2. attach to a component or a choice
+const html = await (await fetch(`/ProductEngines/ComponentAttribute/${compOrChoiceId}`)).text();
+const form = new DOMParser().parseFromString(html, 'text/html').querySelector('form');
+const fa = new FormData(form);
+fa.set('AttributeId', attributeId); fa.set('Value', 'Q1*Q2');   // value ≤ 500 chars, no duplicate value in the same choice
+const r = await fetch('/PECompAttributes/SaveAttributeModel', { method: 'POST', body: fa });
+window._x = await r.text();   // an ErrorCode (433 duplicate value, 437 too long) means not saved
+```
+Check with `/PECompAttributes/_Index?cid={id}` and on the Test page after reloading the engine.
