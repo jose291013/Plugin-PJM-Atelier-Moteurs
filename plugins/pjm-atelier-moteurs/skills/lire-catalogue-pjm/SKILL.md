@@ -1,6 +1,6 @@
 ---
 name: lire-catalogue-pjm
-description: Reads a print shop's PrintJobManager catalog (production resources with their processes, material categories and materials) through Claude in Chrome and loads it into their Atelier Moteurs PJM. Use when the user says "relis le catalogue PJM", "mets à jour les machines / papiers de l'Atelier", "lee el catálogo de PJM", "refresh the PJM catalog", after creating an Atelier, or when a sheet references a machine or paper the Atelier does not know.
+description: Reads a print shop's PrintJobManager catalog (production resources with their processes, material categories and materials, product engine categories) through Claude in Chrome and loads it into their Atelier Moteurs PJM. Use when the user says "relis le catalogue PJM", "mets à jour les machines / papiers de l'Atelier", "lee el catálogo de PJM", "refresh the PJM catalog", after creating an Atelier, or when a sheet references a machine or paper the Atelier does not know.
 ---
 
 # Read the PJM catalog into the Atelier
@@ -19,10 +19,15 @@ Before anything else, apply `moteurs-pjm-expert/references/consommation.md`: one
 2. Run the « resources » script from `references/scripts.md` with the JavaScript tool. It sets the grid page size to 500, fetches every resource's processes and writes a JSON document into a `<pre>` on the page.
 3. Read that JSON with `get_page_text` (the JavaScript tool's output is truncated and is blocked when it contains `&` or `x=y` patterns; `get_page_text` is not). Save it to a local file `catalog_resources.json` without changing it.
 4. Open `{pjmUrl}/Materials`, run the « materials » script, read the JSON with `get_page_text`, save it as `catalog_materials.json`.
-5. Write both to the Atelier with one ArtifactData `batch`: `catalog/resources` and `catalog/materials` (`set` with `file_path`; pass `if_version` when the documents already exist – read them first).
-6. Reload the PJM tab (the scripts replaced the page content) or close it.
-7. Report: number of resources, processes, material categories and materials, and any change since the previous catalog (new or removed machines / processes) when one existed.
+5. Run the « engine categories » script on the same PJM tab (any page of the instance), read the JSON with `get_page_text`, save it as `catalog_categories.json`.
+6. Write the three documents to the Atelier with one ArtifactData `batch`: `catalog/resources`, `catalog/materials` and `catalog/categories` (`set` with `file_path`; pass `if_version` when the documents already exist – read them first).
+7. Reload the PJM tab (the scripts replaced the page content) or close it.
+8. Report: number of resources, processes, material categories, materials and engine categories, and any change since the previous catalog (new or removed machines / processes) when one existed.
 
 ## Expected document shapes (the Atelier depends on them)
 - `catalog/resources`: `{"resources":[{"name","dept","kind":"Équipement"|"Travail manuel","processes":[names]}], "source": pjmUrl, "readAt": "YYYY-MM-DD"}`
 - `catalog/materials`: `{"categories":[{"category","count","items":[names]}], "total": n, "source": pjmUrl, "readAt": "YYYY-MM-DD"}` – items are listed for categories up to 120 materials; larger categories keep `items: []` and only `count`.
+- `catalog/categories`: `{"categories":[{"id","name"}], "source": pjmUrl, "readAt": "YYYY-MM-DD"}` – PJM « Catégories de moteurs de produits », shown in the sheet's « Catégorie de moteur PJM » list (Atelier ≥ 1.6.3). New category: the user creates it in PJM, then asks to refresh the catalog; the Atelier never creates PJM categories.
+
+## Safety
+The engine-category grid answer (`/ProductEngineTypes/_Index`) also carries the account record (`Subscriber`, with mail-server settings and secrets). Keep only `Id` and `Name` in the page script, never print or store the raw answer.

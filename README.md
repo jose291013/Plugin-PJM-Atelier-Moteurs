@@ -2,7 +2,7 @@
 
 Marketplace Cowork contenant deux plugins.
 
-- **pressero-assistant-admin** : pilote l'admin Pressero (scripts du head bas, configurateurs de produits PJM, récapitulatif avec attributs PJM et date de livraison, produits, import Excel, catégories). Détails : [plugins/pressero-assistant-admin/README.md](plugins/pressero-assistant-admin/README.md).
+- **pressero-assistant-admin** : pilote l'admin Pressero (scripts du head bas, configurateurs de produits PJM, récapitulatif avec attributs PJM et date de livraison, produits, import Excel, catégories). Hébergé dans son propre dépôt, [jose291013/Plugin-Pressero-Assistant-Admin](https://github.com/jose291013/Plugin-Pressero-Assistant-Admin), et proposé aussi par cette marketplace.
 - **pjm-atelier-moteurs** : décrivez vos moteurs de prix PrintJobManager dans l'« Atelier », puis laissez Claude les construire, les importer, les mettre à jour ou reprendre un calculateur Excel / Pressero dans votre PJM via Claude in Chrome. Interface et moteurs en français, espagnol ou anglais.
 
 ## Installer

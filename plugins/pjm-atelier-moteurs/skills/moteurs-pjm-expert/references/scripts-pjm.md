@@ -46,6 +46,16 @@ async function choiceIds(cid){
 ```
 If `choiceIds` returns nothing (layout differs), open the ComponentEdit page and read the EditOption links with `find` / `read_page`.
 
+## Editing and deleting (validated 20/10/2026)
+```js
+// rename a choice / change its markup: form of /productengines/editoption/{choiceId} → POST /productengines/saveoption (Id = choice id)
+// send Markup as a plain number (the form holds "0.00000")
+// edit a component (Name, Prompt, Min/Max/Default): resend the form of /ProductEngines/ComponentEdit/{cid} that holds Prompt, with the new values
+// delete a component (only after an explicit « oui »): GET /ProductEngines/DeleteComponent/{cid}?eid={engineId} (fetch: avoids the confirm() dialog), then re-read the component list
+```
+- Two components cannot share a name: `SaveComponent` silently creates nothing (e.g. a new « Découpe » Option while the « Découpe » Calculation still exists). Delete or rename the old one first.
+- `/productengines/addoption/{cid}` is a full page: select `form[action*="saveoption"]`, not the first `form`.
+
 ## Production line (choice of an Option, or a Calculation component)
 
 ```js
@@ -125,7 +135,8 @@ async function setSeq(ownerId, line, seq){
     WorkflowComponentId_input: line.WorkflowComponentName, Seq: seq, Instructions: line.Instructions || '',
     QuantityCalculation: line.QuantityCalculation || '', NumberUpExpression: line.NumberUpExpression || ''});
 }
-// form order (same call as PJM drag and drop); ids = every component id, in the wanted order
+// form order (same call as PJM drag and drop); ids = every component id, in the wanted order,
+// RAW ids without the `comp_` prefix of `.component-list` elements (with `comp_` PJM answers Success but changes nothing)
 async function orderComponents(ids){
   const r = await fetch('/ProductEngines/UpdateCompSequence/', {method:'POST', headers:{'Content-Type':'application/json; charset=utf-8','X-Requested-With':'XMLHttpRequest'}, body: JSON.stringify({newSettings: ids})});
   return r.text(); // {"message":"Success"}

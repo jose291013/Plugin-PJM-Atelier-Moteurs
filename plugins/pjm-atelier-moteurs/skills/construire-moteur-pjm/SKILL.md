@@ -30,6 +30,8 @@ Turn the sheet into a list of PJM objects:
 - weight formulas for materials sold by m² (see expert skill);
 - the report position (`Seq`) of every production line, from the shop flow (« Conventions » in `procedure-construction.md`), shown in the plan;
 - the order of the questions in the form.
+If `productType` is `panneau` (or a material component has `imposition: "plaque"`), follow `moteurs-pjm-expert/references/panneau-rigide.md`: the material component becomes an Options component with one choice per material + thickness and one material line per board sheet (cheapest sheet), `QuantityDefinition` = `Q1*Q2`.
+If a finishing does not fit the product (grommets or pole pockets on a rigid board, lamination on a fluted board…), say so in the plan instead of building it silently.
 Do not set the integration price group (assigned by PJM from the customer company).
 Write each formula from its `basis` (sheets, copies, pages, m², ml, flat, custom) with the expert skill; check parentheses, length ≤ 1400, spaces around `<`. Check that every resource, process and material exists in PJM (`catalog/*` of the Atelier, then the live combobox / `matIds`); report anything missing instead of guessing. If the user asks to create what is missing, add it to the plan and follow « Créer ressources, procédés et matériaux » in `procedure-construction.md`.
 Before saving, check every formula against the pitfalls of `procedure-construction.md` « Pièges validés le 17/10/2026 » (scientific literals, poses division, ToQty, weight).

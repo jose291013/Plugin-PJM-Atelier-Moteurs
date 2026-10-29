@@ -222,16 +222,19 @@ const T = {
   i_flat:["À plat (1 feuille = 1 exemplaire posé)","Plano (1 hoja = 1 ejemplar impuesto)","Flat (1 sheet = imposed copies)"],
   i_brochure4:["Brochure piquée (blocs de 4 pages)","Revista grapada (bloques de 4 páginas)","Saddle-stitched (4-page blocks)"],
   i_feuillets:["Feuillets recto-verso (dos collé)","Hojas a doble cara (encolado)","Double-sided leaves (perfect bound)"],
-  i_surface:["Surface (grand format)","Superficie (gran formato)","Area (large format)"],
-  pt_brochure:["Brochure","Revista / folleto","Booklet"], pt_flyer:["Flyer / dépliant","Flyer / díptico","Flyer / leaflet"], pt_grandformat:["Grand format","Gran formato","Large format"], pt_cartes:["Cartes / petits formats","Tarjetas / pequeño formato","Cards / small formats"],
+  i_surface:["Surface (grand format)","Superficie (gran formato)","Area (large format)"], i_plaque:["Plaques rigides (prix à la plaque, plaque la plus économique)","Planchas rígidas (precio por plancha, la más económica)","Rigid board sheets (priced per sheet, cheapest sheet)"],
+  pt_brochure:["Brochure","Revista / folleto","Booklet"], pt_flyer:["Flyer / dépliant","Flyer / díptico","Flyer / leaflet"], pt_grandformat:["Grand format","Gran formato","Large format"], pt_panneau:["Panneaux rigides","Paneles rígidos","Rigid boards"], pt_cartes:["Cartes / petits formats","Tarjetas / pequeño formato","Cards / small formats"], pt_autre:["Autre / personnalisé","Otro / personalizado","Other / custom"],
   pd_brochure:["Livret piqué ou dos carré collé : couverture + intérieur, pages par multiple de 4.","Revista grapada o encolada: cubierta + interior, páginas en múltiplos de 4.","Saddle-stitched or perfect-bound booklet: cover + inside, pages in multiples of 4."],
   pd_flyer:["Feuille à plat, recto ou recto-verso, pliage éventuel.","Hoja plana, una o dos caras, plegado opcional.","Flat sheet, single or double-sided, optional folding."],
-  pd_grandformat:["Bâches, panneaux, adhésifs : calcul au m², finitions œillets, ourlets, découpe.","Lonas, paneles, vinilos: cálculo por m², ojales, dobladillos, corte.","Banners, boards, vinyls: priced per m², grommets, hems, cutting."],
+  pd_grandformat:["Bâches, adhésifs, textiles : calcul au m², finitions œillets, ourlets, fourreaux.","Lonas, vinilos, textiles: cálculo por m², ojales, dobladillos, bolsillos.","Banners, vinyls, textiles: priced per m², grommets, hems, pole pockets."], pd_panneau:["PVC, alu composite, alvéolaire… : prix à la plaque (plaque la plus économique choisie automatiquement), découpe droite ou à la forme, coins arrondis, perforation.","PVC, aluminio compuesto, alveolar…: precio por plancha (la más económica se elige sola), corte recto o a forma, esquinas redondeadas, perforación.","PVC, aluminium composite, fluted board…: priced per board sheet (cheapest sheet picked automatically), straight or contour cut, rounded corners, drilling."],
   pd_cartes:["Cartes de visite, étiquettes : forte imposition, coupe dédiée.","Tarjetas de visita, etiquetas: alta imposición, corte específico.","Business cards, labels: high imposition, dedicated cutting."],
+  pd_autre:["Fiche vide, sans modèle : vous ajoutez vous-même les questions et les étapes (étiquettes, produits spéciaux…).","Ficha vacía, sin plantilla: usted añade las preguntas y los pasos (etiquetas, productos especiales…).","Blank sheet, no template: you add the questions and steps yourself (labels, special products…)."],
   pq_brochure:["Q1 ex. · Q2 pages · Q3 × Q4 mm","Q1 ej. · Q2 páginas · Q3 × Q4 mm","Q1 copies · Q2 pages · Q3 × Q4 mm"],
   pq_flyer:["Q1 ex. · Q3 × Q4 mm","Q1 ej. · Q3 × Q4 mm","Q1 copies · Q3 × Q4 mm"],
   pq_grandformat:["Q1 ex. · Q2 × Q3 cm","Q1 ej. · Q2 × Q3 cm","Q1 copies · Q2 × Q3 cm"],
+  pq_panneau:["Q1 versions × Q2 ex. · Q3 × Q4 mm","Q1 versiones × Q2 ej. · Q3 × Q4 mm","Q1 versions × Q2 copies · Q3 × Q4 mm"],
   pq_cartes:["Q1 ex. · Q3 × Q4 mm","Q1 ej. · Q3 × Q4 mm","Q1 copies · Q3 × Q4 mm"],
+  pq_autre:["Q1 seulement","Solo Q1","Q1 only"],
   newEngine:["Nouveau moteur – {p}","Nuevo motor – {p}","New engine – {p}"],
   saving:["Modifications…","Cambios…","Editing…"], saving2:["Enregistrement…","Guardando…","Saving…"], saved:["Enregistré","Guardado","Saved"], savedLocal:["Enregistré (local)","Guardado (local)","Saved (local)"],
   readOnly:["Lecture seule : vous ne pouvez pas modifier","Solo lectura: no puede modificar","Read-only: you cannot edit"], saveFail:["Échec de l'enregistrement, nouvel essai…","Error al guardar, reintentando…","Save failed, retrying…"],
@@ -247,7 +250,7 @@ const T = {
   newText:["Choisissez le type de produit : la fiche est pré-remplie avec les questions et étapes habituelles, que vous ajusterez ensuite.","Elija el tipo de producto: la ficha se rellena con las preguntas y pasos habituales, que luego podrá ajustar.","Choose the product type: the sheet is prefilled with the usual questions and steps, which you can then adjust."],
   newName:["Nom du moteur dans PJM","Nombre del motor en PJM","Engine name in PJM"], newNamePh:["ex. Brochure A4 numérique","ej. Revista A4 digital","e.g. A4 digital booklet"],
   createBtn:["Créer la fiche","Crear la ficha","Create sheet"],
-  f_cat:["Catégorie de moteur PJM","Categoría de motor PJM","PJM engine category"], f_status:["Statut","Estado","Status"], f_statusHint:["« Prêt à construire » signale à Claude que la fiche est complète.","«Lista para construir» indica a Claude que la ficha está completa.","“Ready to build” tells Claude the sheet is complete."],
+  f_cat:["Catégorie de moteur PJM","Categoría de motor PJM","PJM engine category"], f_catNone:["— Aucune —","— Ninguna —","— None —"], f_catHint:["Liste lue dans PJM avec le catalogue. Nouvelle catégorie : créez-la dans PJM, puis demandez à Claude « relis le catalogue PJM ».","Lista leída en PJM con el catálogo. Nueva categoría: créela en PJM y pida a Claude «relee el catálogo PJM».","List read from PJM with the catalog. New category: create it in PJM, then ask Claude to “refresh the PJM catalog”."], f_status:["Statut","Estado","Status"], f_statusHint:["« Prêt à construire » signale à Claude que la fiche est complète.","«Lista para construir» indica a Claude que la ficha está completa.","“Ready to build” tells Claude the sheet is complete."],
   f_ptype:["Type de produit","Tipo de producto","Product type"], f_ptypeHint:["Changer le type ne modifie pas les composants déjà saisis.","Cambiar el tipo no modifica los componentes ya creados.","Changing the type does not change existing components."],
   f_desc:["Description (visible dans PJM)","Descripción (visible en PJM)","Description (shown in PJM)"], f_descPh:["ex. Brochure agrafée, impression numérique, de 8 à 64 pages","ej. Revista grapada, impresión digital, de 8 a 64 páginas","e.g. Stapled booklet, digital print, 8 to 64 pages"],
   qtyDef:["Définition du calcul de quantité","Definición del cálculo de cantidad","Quantity calculation"], qtyRef:["Quantité de référence","Cantidad de referencia","Reference quantity"], qtyRefHint:["Champ « Sélectionnez la quantité » du moteur.","Campo «Seleccione la cantidad» del motor.","The engine's “Select quantity” field."],
@@ -388,22 +391,27 @@ const t = (k,vars) => { const row=T[k]; let s = row ? row[LANGS.indexOf(LANG)] :
 const LOCALE = () => ({fr:"fr-FR",es:"es-ES",en:"en-GB"})[LANG];
 
 /* ---------- constantes métier ---------- */
-const PJM_CATEGORIES = ["1-Calendriers","2-Carterie","3-Dépliant","4-Enveloppes","5-Flyers / poster","6-Grand format","7-Livres et magazine","Textile"];
+const PJM_CATEGORIES_DEFAULT = ["1-Calendriers","2-Carterie","3-Dépliant","4-Enveloppes","5-Flyers / poster","6-Grand format","7-Livres et magazine","Textile"];
+/* catégories de moteurs lues dans PJM (doc catalog/categories, écrit par « relis le catalogue PJM ») ; liste par défaut tant qu'elle est vide */
+const pjmCats = cur => { const l=(S.catalog.engineCategories&&S.catalog.engineCategories.length?S.catalog.engineCategories.map(x=>typeof x==="string"?x:x.name).filter(Boolean):PJM_CATEGORIES_DEFAULT).slice(); if(cur&&!l.includes(cur)) l.push(cur); return l; };
 const STATUS_KEYS = ["brouillon","pret","construction","cree","maj","import"];
 let PJM_URL = "";
 const CTYPES = ["quantity","option","material","calculation"];
 const BASIS_KEYS = ["feuilles","exemplaires","pages","cahiers","m2","ml","forfait","custom"];
-const IMPO_KEYS = ["flat","brochure4","feuillets","surface"];
-const PT_KEYS = ["brochure","flyer","grandformat","cartes"];
-const PT_CAT = {brochure:"7-Livres et magazine", flyer:"5-Flyers / poster", grandformat:"6-Grand format", cartes:"2-Carterie"};
+const IMPO_KEYS = ["flat","brochure4","feuillets","surface","plaque"];
+const PT_KEYS = ["brochure","flyer","grandformat","panneau","cartes","autre"];
+const PT_CAT = {brochure:"7-Livres et magazine", flyer:"5-Flyers / poster", grandformat:"6-Grand format", panneau:"6-Grand format", cartes:"2-Carterie", autre:""};
 const ICONS = {
   brochure:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 3.5C6.5 2.5 4 2.3 2 2.8v10c2-.5 4.5-.3 6 .7 1.5-1 4-1.2 6-.7v-10c-2-.5-4.5-.3-6 .7zM8 3.5v10"/></svg>',
   flyer:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="1.5" width="9" height="13" rx="1"/><path d="M5.5 5h5M5.5 7.5h5M5.5 10h3"/></svg>',
   grandformat:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="3.5" width="13" height="8"/><circle cx="2.8" cy="4.8" r=".6"/><circle cx="13.2" cy="4.8" r=".6"/><circle cx="2.8" cy="10.2" r=".6"/><circle cx="13.2" cy="10.2" r=".6"/></svg>',
-  cartes:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4" width="13" height="8" rx="1"/><path d="M4 7h4M4 9h6"/></svg>'
+  panneau:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2.5" width="12" height="9" rx="1.2"/><circle cx="3.8" cy="4.3" r=".7"/><circle cx="12.2" cy="4.3" r=".7"/><path d="M4 13.5h8"/></svg>',
+  cartes:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4" width="13" height="8" rx="1"/><path d="M4 7h4M4 9h6"/></svg>',
+  autre:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke-dasharray="2 1.6"/><path d="M8 5.5v5M5.5 8h5"/></svg>'
 };
 const uid = () => Math.random().toString(36).slice(2,10);
 const step = (resource="", process="", basis="feuilles", note="") => ({id:uid(), resource, process, basis, formula:"", note});
+const stepF = (resource, process, formula, note="") => ({id:uid(), resource, process, basis:"custom", formula, note});
 const opt = (name, steps=[], adjust=0) => ({id:uid(), name, adjust, steps, materials:[]});
 const q = (code, name, userText, unit, min, max, def) => ({id:uid(), type:"quantity", code, name, userText, unit, min, max, def, hideWhen:[]});
 const o = (name, userText, options, extra={}) => ({id:uid(), type:"option", name, userText, forceSelect:true, hidePublic:false, options, hideWhen:[], ...extra});
@@ -429,11 +437,21 @@ const W = {
   qty:["Quantité","Cantidad","Quantity"], support:["Support","Soporte","Substrate"], supportU:["Support d'impression","Soporte de impresión","Print substrate"],
   quality:["Qualité d'impression","Calidad de impresión","Print quality"], prod:["Production","Producción","Production"], qual:["Qualité","Calidad","Quality"],
   finish:["Finition","Acabado","Finishing"], finishU:["Finition des bords","Acabado de bordes","Edge finishing"], noFinish:["Sans finition","Sin acabado","No finishing"], eyelets:["Œillets tous les 50 cm","Ojales cada 50 cm","Grommets every 50 cm"], eyeletsNote:["1 œillet tous les 50 cm sur le périmètre","1 ojal cada 50 cm en el perímetro","1 grommet every 50 cm around the edge"], pockets:["Fourreaux","Bolsillos (fundas)","Pole pockets"],
-  pack:["Emballage","Embalaje","Packaging"], paper:["Papier","Papel","Paper"], cards:["Quantité de cartes","Cantidad de tarjetas","Number of cards"], round:["Coins arrondis","Esquinas redondeadas","Rounded corners"]
+  pack:["Emballage","Embalaje","Packaging"], paper:["Papier","Papel","Paper"], cards:["Quantité de cartes","Cantidad de tarjetas","Number of cards"], round:["Coins arrondis","Esquinas redondeadas","Rounded corners"],
+  versions:["Nombre de versions","Número de versiones","Number of versions"], versionsU:["versions","versiones","versions"], perVersion:["Quantité d'exemplaires par version","Cantidad de ejemplares por versión","Copies per version"],
+  smallDim:["Petite dimension (en mm)","Dimensión pequeña (en mm)","Short side (in mm)"], bigDim:["Grande dimension (en mm)","Dimensión grande (en mm)","Long side (in mm)"],
+  thickness:["Épaisseur","Grosor","Thickness"], thicknessU:["Matière et épaisseur","Material y grosor","Material and thickness"],
+  printQ:["Impression quadri","Impresión cuatricromía","CMYK printing"], recto:["Recto","Una cara","Single-sided"], rectoVerso:["Recto/Verso","Doble cara","Double-sided"],
+  cutStraight:["Au format (découpe droite)","Al formato (corte recto)","To size (straight cut)"], cutShape:["À la forme (découpe personnalisée)","A forma (corte personalizado)","Contour (custom shape)"],
+  cutPanel:["Découpe","Corte","Cutting"], roundR:["Coins arrondis (rayon)","Esquinas redondeadas (radio)","Rounded corners (radius)"],
+  drill:["Perforation","Perforación","Drilling"], drill4:["Aux 4 coins","En las 4 esquinas","4 corners"], drill2:["Aux 2 coins supérieurs","En las 2 esquinas superiores","2 top corners"],
+  fileCheck:["Vérification du fichier","Verificación del archivo","File check"], fileAuto:["Automatique gratuite","Automática gratuita","Automatic (free)"], fileFix:["Mise aux normes du fichier","Adaptación del archivo","File fixing"], fileFixBat:["Mise aux normes du fichier + BAT par e-mail","Adaptación del archivo + prueba por e-mail","File fixing + e-mail proof"],
+  perVersionNote:["1 par version (Q1)","1 por versión (Q1)","1 per version (Q1)"], perPanelNote:["1 par panneau (Q1 × Q2)","1 por panel (Q1 × Q2)","1 per board (Q1 × Q2)"], perimNote:["Périmètre de chaque panneau, en ml","Perímetro de cada panel, en ml","Perimeter of each board, in linear metres"]
 };
 const w = k => W[k][LANGS.indexOf(LANG)];
 
 function template(tp){
+  if(tp==="autre") return [q("Q1",w("qty"),w("qty"),w("ex"),1,99999,1)];
   if(tp==="brochure"){
     const couv = o(w("diffCover"),w("diffCoverU"),[opt(w("yes")),opt(w("no"))]);
     const hideNo=[{component:couv.id, value:w("no")}];
@@ -471,6 +489,22 @@ function template(tp){
     o(w("finish"),w("finishU"),[opt(w("noFinish")),opt(w("eyelets"),[step("Oeuillets","Oeuillets","custom",w("eyeletsNote"))]),opt(w("pockets"),[step("32. IMPULSA","Fourreaux couture","ml")])],{forceSelect:false}),
     c(w("pack"),w("pack"),[step("61. EMBALLAGE","Emballage","forfait")])
   ];
+  if(tp==="panneau"){
+    const latex=(f)=>[stepF("03. HP LATEX 2000","Production (6p/110%)",f)];
+    return [
+      q("Q1",w("versions"),w("versions"),w("versionsU"),1,50,1),
+      q("Q2",w("perVersion"),w("perVersion"),w("ex"),1,9999,1),
+      q("Q3",w("smallDim"),w("smallDim"),"mm",50,2000,300),
+      q("Q4",w("bigDim"),w("bigDim"),"mm",50,3000,400),
+      m(w("thickness"),w("thicknessU"),{mode:"category", imposition:"plaque", sides:"recto", bleed:6}),
+      o(w("printQ"),w("printQ"),[opt(w("recto"),latex("Q1*Q2*Q3*Q4/1E6")),opt(w("rectoVerso"),latex("Q1*Q2*Q3*Q4*2/1E6"))]),
+      o(w("cutPanel"),w("cutPanel"),[opt(w("cutStraight"),[stepF("11. ZUND","Cut Simple","Q1*Q2*(Q3+Q4)*2/1E3",w("perimNote"))]),opt(w("cutShape"),[stepF("11. ZUND","Cut Standard","Q1*Q2*(Q3+Q4)*2/1E3",w("perimNote"))])]),
+      o(w("roundR"),w("roundR"),[opt(w("no")),...["5","10","15","20","25","30"].map(r=>opt(r+" mm",[stepF("Coins arrondis","Coins arrondis","Q1*Q2",w("perPanelNote"))]))],{forceSelect:false}),
+      o(w("drill"),w("drill"),[opt(w("no")),opt(w("drill4"),[stepF("Perforado","Perforado 4 agujeros de 6 mm","Q1*Q2",w("perPanelNote"))]),opt(w("drill2"),[stepF("Perforado","Perforado 2 agujeros de 6 mm","Q1*Q2",w("perPanelNote"))])],{forceSelect:false}),
+      o(w("fileCheck"),w("fileCheck"),[opt(w("fileAuto")),opt(w("fileFix"),[stepF("Vérification des fichiers","Vérification de fichiers standard sans BAT","Q1",w("perVersionNote"))]),opt(w("fileFixBat"),[stepF("Vérification des fichiers","Vérification de fichiers standard avec BAT","Q1",w("perVersionNote"))])]),
+      c(w("pack"),w("pack"),[step("61. EMBALLAGE","Emballage","forfait")])
+    ];
+  }
   return [
     q("Q1",w("cards"),w("cards"),w("ex"),50,10000,250),
     q("Q3",w("width"),w("widthMm"),"mm",40,210,85),
@@ -496,7 +530,7 @@ function normalize(b){
 function newBrief(tp, name){
   const now = new Date().toISOString();
   return {name:name||t("newEngine",{p:t("pt_"+tp)}), productType:tp, status:"brouillon", pjmCategory:PT_CAT[tp], description:"", language:LANG,
-    priceMin:"", priceMax:"", quantityComponent:"Q1", multiQty:false,
+    priceMin:"", priceMax:"", quantityComponent:tp==="panneau"?"Q1*Q2":"Q1", multiQty:false,
     components:template(tp),
     delays:defaultDelays(), restrictions:[], rulesNotes:"", guided:{}, freeRules:[], tests:[],
     margin:{pricingGroup:"", notes:""},
@@ -505,7 +539,7 @@ function newBrief(tp, name){
 
 /* ---------- état ---------- */
 const S = {db:null, user:null, uidSelf:null, briefs:new Map(), sel:null, tab:"produit", draft:null, dirty:false, saving:false,
-  catalog:{resources:[], categories:[], readAt:null}, questions:[], suggestions:[], isAdmin:false, sample:null, view:"brief", busy:new Set(), local:false, creating:null, confirmDel:null, matOpen:new Set()};
+  catalog:{resources:[], categories:[], engineCategories:[], readAt:null}, questions:[], suggestions:[], isAdmin:false, sample:null, view:"brief", busy:new Set(), local:false, creating:null, confirmDel:null, matOpen:new Set()};
 const $ = s => document.querySelector(s);
 const esc = s => String(s??"").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function toast(msg){const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>el.hidden=true,2200);}
@@ -538,7 +572,7 @@ async function createBrief(tp,name){
 }
 async function createImport(engineId,url){
   const id="b"+Date.now().toString(36)+uid().slice(0,4); const now=new Date().toISOString();
-  const b={name:t("imp_name",{id:engineId.slice(0,8)}), productType:"brochure", status:"import", pjmCategory:"", description:"", language:LANG, priceMin:"", priceMax:"", quantityComponent:"Q1", multiQty:false, components:[], delays:{...defaultDelays(), enabled:false, choices:[]}, restrictions:[], rulesNotes:"", guided:{}, freeRules:[], tests:[], margin:{pricingGroup:"",notes:""}, notes:"", pjm:{engineId, url}, createdAt:now, updatedAt:now, schema:1};
+  const b={name:t("imp_name",{id:engineId.slice(0,8)}), productType:"autre", status:"import", pjmCategory:"", description:"", language:LANG, priceMin:"", priceMax:"", quantityComponent:"Q1", multiQty:false, components:[], delays:{...defaultDelays(), enabled:false, choices:[]}, restrictions:[], rulesNotes:"", guided:{}, freeRules:[], tests:[], margin:{pricingGroup:"",notes:""}, notes:"", pjm:{engineId, url}, createdAt:now, updatedAt:now, schema:1};
   if(S.uidSelf){ b.createdBy=S.uidSelf; b.updatedBy=S.uidSelf; }
   S.briefs.set(id,b);
   if(!S.local){ try{ await S.db.doc("briefs/"+id).set(b);}catch(e){ toast(t("createFail",{e:(e&&e.message)||"error"})); S.briefs.delete(id); return; } }
@@ -734,14 +768,14 @@ const selOpts = (obj,cur) => Object.entries(obj).map(([k,l])=>'<option value="'+
 function tabProduit(b){
   const qs=b.components.filter(x=>x.type==="quantity");
   return '<div class="card"><div class="bd" style="border-top:0;padding-top:16px"><div class="grid">'+
-    fld(t("f_cat"),"pjmCategory",b.pjmCategory,{type:"select",options:PJM_CATEGORIES.map(x=>'<option'+(x===b.pjmCategory?" selected":"")+'>'+esc(x)+'</option>').join("")})+
+    fld(t("f_cat"),"pjmCategory",b.pjmCategory,{type:"select",options:'<option value="">'+t("f_catNone")+'</option>'+pjmCats(b.pjmCategory).map(x=>'<option value="'+esc(x)+'"'+(x===b.pjmCategory?" selected":"")+'>'+esc(x)+'</option>').join(""),hint:t("f_catHint")})+
     fld(t("f_status"),"status",b.status,{type:"select",options:selOptsK(STATUS_KEYS,"st_",b.status),hint:t("f_statusHint")})+
     fld(t("fl_lang"),"language",b.language,{type:"select",options:LANGS.map(l=>'<option value="'+l+'"'+(l===b.language?" selected":"")+'>'+t("l_"+l)+'</option>').join("")})+
     fld(t("f_ptype"),"productType",b.productType,{type:"select",options:selOptsK(PT_KEYS,"pt_",b.productType),hint:t("f_ptypeHint")})+
     fld(t("f_desc"),"description",b.description,{type:"textarea",wide:true,ph:t("f_descPh")})+
     '</div></div></div>'+
     '<div class="card"><div class="hd"><h3 style="font-size:16px">'+t("qtyDef")+'</h3></div><div class="bd"><div class="grid">'+
-    fld(t("qtyRef"),"quantityComponent",b.quantityComponent,{type:"select",options:qs.map(x=>'<option value="'+esc(x.code)+'"'+(x.code===b.quantityComponent?" selected":"")+'>'+esc(x.code+" – "+x.userText)+'</option>').join(""),hint:t("qtyRefHint")})+
+    fld(t("qtyRef"),"quantityComponent",b.quantityComponent,{type:"select",options:qs.map(x=>'<option value="'+esc(x.code)+'"'+(x.code===b.quantityComponent?" selected":"")+'>'+esc(x.code+" – "+x.userText)+'</option>').join("")+([...new Set([...(b.productType==="panneau"?["Q1*Q2"]:[]),...(qs.some(x=>x.code===b.quantityComponent)?[]:[b.quantityComponent])])].filter(Boolean).map(f=>'<option value="'+esc(f)+'"'+(f===b.quantityComponent?" selected":"")+'>'+esc(f)+'</option>').join("")),hint:t("qtyRefHint")})+
     '<div class="field"><span class="lbl">'+t("options")+'</span>'+chk(t("multiQty"),"multiQty",b.multiQty)+'</div>'+
     '</div></div></div>'+pjmCard(b);
 }
@@ -1165,6 +1199,7 @@ renderChrome(); renderList(); renderView();
   S.db=db;
   db.doc("catalog/resources").onSnapshot(s=>{ S.catLoaded=true; if(s.exists){ const d=s.data(); S.catalog.resources=d.resources||[]; S.catalog.readAt=d.readAt; } updCat(); if(S.draft&&S.tab==="formulaire") rerenderKeep(); }, ()=>{});
   db.doc("catalog/materials").onSnapshot(s=>{ S.catLoaded=true; if(s.exists){ const d=s.data(); S.catalog.categories=d.categories||[]; S.catalog.matTotal=d.total; } updCat(); if(S.draft&&S.tab==="formulaire") rerenderKeep(); }, ()=>{});
+  db.doc("catalog/categories").onSnapshot(s=>{ if(s.exists){ const d=s.data(); S.catalog.engineCategories=Array.isArray(d.categories)?d.categories:[]; } if(S.draft&&S.tab==="produit") rerenderKeep(); }, ()=>{});
   db.doc("settings/app").onSnapshot(sn=>{ const d=sn.exists?sn.data():{}; ADMIN_LANG=LANGS.includes(d.defaultLang)?d.defaultLang:null; PJM_URL=typeof d.pjmUrl==="string"?d.pjmUrl:""; if(!personalLang()){ const nl=ADMIN_LANG||browserLang(); if(nl!==LANG){ LANG=nl; renderChrome(); renderList(); rerenderKeep(); } } if(S.view==="admin") renderAdmin(); else if(S.draft) rerenderKeep(); }, ()=>{});
   db.collection("questions").onSnapshot(snap=>{ S.questions=snap.docs.map(d=>({...d.data(), id:d.id})); if(S.view==="admin") renderAdmin(); else if(S.draft&&(S.tab==="regles"||S.tab==="recap")) rerenderKeep(); }, ()=>{});
   if(S.isAdmin) db.collection("suggestions").onSnapshot(snap=>{ S.suggestions=snap.docs.map(d=>({...d.data(), id:d.id})); if(S.view==="admin") renderAdmin(); }, ()=>{});
@@ -1174,7 +1209,7 @@ renderChrome(); renderList(); renderView();
     for(const ch of snap.docChanges()){
       if(ch.type==="removed"){ S.briefs.delete(ch.doc.id); if(ch.doc.id===S.sel){ S.sel=null; S.draft=null; renderView(); } continue; }
       const d=ch.doc.data(); S.briefs.set(ch.doc.id,d);
-      if(ch.doc.id===S.sel && !S.dirty && !S.saving && d.updatedAt!==S.draft.updatedAt && d.updatedBy!==S.uidSelf){ S.draft=normalize(JSON.parse(JSON.stringify(d))); rerenderKeep(); toast(t("updatedOther")); }
+      if(ch.doc.id===S.sel && !S.dirty && !S.saving && S.draft && d.updatedAt!==S.draft.updatedAt){ S.draft=normalize(JSON.parse(JSON.stringify(d))); rerenderKeep(); toast(t("updatedOther")); }
     }
     S.loaded=true;
     if(first){ first=false; let last=null; try{ last=localStorage.getItem("pjm.sel"); }catch(e){} if(last&&S.briefs.has(last)&&!S.sel&&S.creating===null) select(last); else renderView(); }

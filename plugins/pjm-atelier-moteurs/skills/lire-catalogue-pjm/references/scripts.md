@@ -39,3 +39,17 @@ document.body.innerHTML = '<pre id="dump"></pre>';
 document.getElementById('dump').textContent = JSON.stringify(doc);
 mats.length + ' materials, ' + categories.length + ' categories'
 ```
+
+## Engine categories (any page of `{pjmUrl}`, e.g. `/ProductEngineTypes`)
+
+The raw answer contains the `Subscriber` record (mail-server password, keys): keep only `Id` and `Name`, never print `j` itself.
+
+```js
+const r = await fetch('/ProductEngineTypes/_Index', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','X-Requested-With':'XMLHttpRequest'}, body:'sort=&page=1&pageSize=500&group=&filter='});
+const j = await r.json();
+const categories = j.Data.filter(x => !x.IsDeleted).map(x => ({id: x.Id, name: x.Name.trim()})).sort((a,b) => a.name.localeCompare(b.name));
+const doc = {categories, source: location.origin, readAt: new Date().toISOString().slice(0,10)};
+document.body.innerHTML = '<pre id="dump"></pre>';
+document.getElementById('dump').textContent = JSON.stringify(doc);
+categories.length + ' engine categories'
+```

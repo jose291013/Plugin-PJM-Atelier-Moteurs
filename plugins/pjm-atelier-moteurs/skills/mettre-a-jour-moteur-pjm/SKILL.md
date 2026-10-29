@@ -21,6 +21,8 @@ Before anything else, apply `moteurs-pjm-expert/references/consommation.md`: one
    - new choices on a forced option: re-check the `select_one_id` suppressions;
    - new production lines get their report position (`Seq`) from the convention; existing lines with a wrong `Seq` (e.g. all at 1) are listed as differences and fixed with `setSeq` after confirmation;
    - new components: re-run `orderComponents` so the form keeps the logical order.
+   - prefer reusing an existing component or choice (rename it, change its line with the same Id) over deleting it: e.g. a « Finition » with grommets becomes « Perforation », a choice keeps its Id. Delete only what cannot be reused, after an explicit « oui », with `DeleteComponent` (see « Editing and deleting » in `scripts-pjm.md`);
+   - when the product type changes (e.g. grand format → `panneau`), rewrite the sheet on the new template first, then diff it with the engine.
 6. Re-read the grids, update `pjm.map` and `pjm.builtAt` (ArtifactData `update`).
 7. Run all test cases, write `tests[].last`, report differences against `expected` and against the previous `last`.
 8. Set `status` to `cree` and summarize the changes made in PJM.

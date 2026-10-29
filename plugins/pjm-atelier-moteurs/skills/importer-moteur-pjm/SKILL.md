@@ -17,7 +17,7 @@ Before anything else, apply `moteurs-pjm-expert/references/consommation.md`: one
    - `components[]` with local ids (8 random lowercase characters), `hideWhen` from suppressions (ignore `select_one_id` suppressions that duplicate the first-choice rule);
    - production steps: recognize standard formulas and set `basis` (copies, sheets, pages, m2, ml, flat); anything else → `basis: "custom"` with the original formula in `formula`;
    - an Options component whose choices only carry a markup and no lines (e.g. « Délais de production ») → `delays` (`enabled: true`, choices with label and markup);
-   - `language` from the engine's texts; `productType` and `pjmCategory` from the category;
+   - `language` from the engine's texts; `pjmCategory` = the engine's category name; `productType` = the Atelier type whose template matches the product (brochure, flyer, grandformat, panneau, cartes), otherwise `autre`;
    - `pjm = {engineId, url, importedAt: ISO date, map}` with every PJM id read.
 4. Write the sheet (ArtifactData `set` or `update`), then set `status` to `cree`.
 5. Optionally run one test case with default values and store it in `tests[]` with its price as `expected`, so a later update can be checked against today's price.

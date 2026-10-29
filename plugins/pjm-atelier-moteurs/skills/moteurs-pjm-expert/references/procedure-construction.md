@@ -124,7 +124,7 @@ Le champ `Seq` d'une ligne de production = colonne « position s… » = ordre d
 - Corriger une ligne existante : `SaveComponentProduction` avec `ComponentProductionId` = Id de la ligne et tous ses champs renvoyés (seul `Seq` change).
 
 ### Ordre des questions du formulaire
-- Équivalent du glisser-déposer de PJM : POST JSON `/ProductEngines/UpdateCompSequence/` avec `{"newSettings":[id1, id2, …]}` (tous les composants, dans l'ordre voulu ; ids = `comp_{id}` des éléments `.component-list`). Réponse `{"message":"Success"}`.
+- Équivalent du glisser-déposer de PJM : POST JSON `/ProductEngines/UpdateCompSequence/` avec `{"newSettings":[id1, id2, …]}` (tous les composants, dans l'ordre voulu ; ids = id **bruts** des composants, SANS le préfixe `comp_` des éléments `.component-list` : avec `comp_` la réponse est aussi « Success » mais rien ne change, validé le 27/10/2026). Réponse `{"message":"Success"}` ; relire l'ordre ensuite.
 - Faire cet appel à la fin de chaque construction (et après ajout de composants lors d'une mise à jour), puis relire l'ordre.
 - Ordre logique : Quantité Q1 → Format → dimensions (Largeur, Hauteur) → Grammage / qualité → Papier → Impression → finitions (pelliculage, vernis) → pliage / façonnage → reliure → Délais de production. Les variantes dupliquées d'un même composant restent groupées.
 
@@ -143,7 +143,7 @@ Le champ `Seq` d'une ligne de production = colonne « position s… » = ordre d
 
 ### Formats fermés + format personnalisé
 - Option « Format » (A6, A5, A4…, Personnaliser) ; Largeur / Hauteur masquées sur les formats fermés et sur `select_one_id`.
-- Tout ce qui dépend du format (papier, impression, pelliculage, coupe) est dupliqué par format, avec ses poses en dur (`CalcNup(148,210,450,320,6)`) ou `Max(CalcNup(Q3,Q4,450,320,6), 0.0001)` pour le format personnalisé ; quantité `Ceiling(Q1 / Nup())`. La coupe peut être portée par les choix de « Format ».
+- Tout ce qui dépend du format (papier, impression, pelliculage, coupe) est dupliqué par format, avec ses poses en dur (`CalcNup(148,210,450,320,6)`) ou `Max(CalcNup(Q3,Q4,450,320,6), 0.0001)` pour le format personnalisé (ou `floor(CalcNup(Q3,Q4,450,320,6))`) ; quantité des **matériaux** `Ceiling(Q1 / Nup())` (poses en formule → pas de division par PJM), quantité des **lignes de production** `Q1` (PJM divise lui-même par `Nup()` ; `Ceiling(Q1 / Nup())` y diviserait deux fois : 1 feuille facturée au lieu de 12, constaté le 27/10/2026). La coupe peut être portée par les choix de « Format ».
 
 ### Matériaux en double (même nom)
 - `matIds` peut trouver deux matériaux actifs au même nom. Prendre celui déjà utilisé par un autre moteur (lire les `"value":[…]` du multiselect `ddlMaterials` des composants Matériel), sinon le plus ancien (`CreateDate`), et le signaler à l'utilisateur.
@@ -164,6 +164,8 @@ Le champ `Seq` d'une ligne de production = colonne « position s… » = ordre d
 - **Poids** : « Calcul du poids » ignoré si WeightPer du matériau = 0 ; PJM arrondit WeightPer et le coût matériau à 2 décimales → saisir le poids pour 1000 articles et le coût pour 100 000 articles.
 - **Page Test en cache** : recharger la page d'édition du moteur avant de retester après une modification.
 - Pas de Q6 : utiliser R1…R5, P1…P5, S1…S5.
+- **CalcNup renvoie un Decimal** (validé 20/10/2026) : `Q1 / CalcNup(…)` et `Max(CalcNup(…),1E-4)` sont refusés (ErrorCode 448 « Operator '/' can't be applied to operands of types 'double' and 'decimal' ») ; écrire `floor(CalcNup(…))`. Le message d'erreur de `SaveComponentMaterial` cite la formule fautive : le lire.
+- **Type de produit d'origine** : avant de construire, vérifier que les finitions de la fiche ont du sens pour le produit (ex. pas d'œillets / fourreaux sur un panneau rigide) et le signaler dans le plan.
 
 ## Matériau par laize au mètre linéaire (validé 17/10/2026)
 - Un matériau par laize et par support : « {support} - laize {W} mm (ml) », dimensions W × 1000 mm, prix au ml = prix m² × W/1000.

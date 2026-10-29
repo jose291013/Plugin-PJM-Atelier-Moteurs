@@ -12,9 +12,11 @@ Statut « Prêt à construire » → Claude lit la fiche (ArtifactData, collecti
   priceMin/Max, components[], delays{}, margin{}, notes).
 - `catalog/resources` : ressources de production PJM + procédés (lu par le skill `lire-catalogue-pjm`).
 - `catalog/materials` : catégories de matériaux, noms détaillés jusqu'à 120 par catégorie.
+- `catalog/categories` : catégories de moteurs de produit PJM `[{id, name}]` (≥ 1.6.3), lues par `lire-catalogue-pjm` ; elles remplissent la liste « Catégorie de moteur PJM » de la fiche (liste par défaut tant que le document n'existe pas).
   Écriture réservée aux éditeurs (règle `catalog write admin`). À rafraîchir quand PJM change.
 
 ## Structure PJM relevée (moteur « Brochure numerique »)
+- Types de produit de l'Atelier (`productType`) : autre (fiche vide sans modèle, seulement Q1 ; type des fiches importées depuis 1.6.3), brochure, flyer, grandformat (bâches, adhésifs, textiles), panneau (panneaux rigides, prix à la plaque, Q1 versions × Q2 ex., Q3 × Q4 mm ; voir `panneau-rigide.md`), cartes. Imposition `plaque` = plaques rigides.
 - Moteur : Nom, Catégorie (1-Calendriers, 2-Carterie, 3-Dépliant, 4-Enveloppes, 5-Flyers / poster, 6-Grand format,
   7-Livres et magazine, Textile), Description, Définition du calcul de quantité (Sélectionnez la quantité, quantités multiples),
   Prix min/max, Intégrations (groupe de prix, Tflow, QuickBooks).
@@ -62,8 +64,13 @@ Onglet « Délais & prix » : liste de délais avec marge (défaut J+5 0 %, J+3 
 - Récapitulatif → « Cas de test » : quantités, choix, prix attendu, dernier résultat écrit par Claude.
 - Correctif : les modèles Flyer et Cartes plantaient (mot « Papier » manquant dans les modèles traduits).
 
+## Écrire une fiche depuis Claude (validé 20/10/2026)
+- Toujours écrire `updatedBy: "claude"` et un `updatedAt` neuf : sinon un Atelier déjà ouvert (version ≤ 1.6.1) prend la mise à jour pour son propre écho, garde l'ancienne fiche et l'écrase à la prochaine modification.
+- Après l'écriture, demander à l'utilisateur de recharger l'Atelier s'il était ouvert ; relire la fiche (version, `updatedAt`) avant toute nouvelle écriture.
+- Questions guidées sur les finitions : demander ce qui est **impossible** (incompatibilités), jamais ce qui est possible.
+
 ## Fiche vide (création par import)
 ```json
-{"name":"","productType":"brochure","status":"import","pjmCategory":"","description":"","language":"fr","priceMin":"","priceMax":"","quantityComponent":"Q1","multiQty":false,"components":[],"delays":{"enabled":false,"name":"Délais de production","userText":"","choices":[],"notes":""},"restrictions":[],"rulesNotes":"","guided":{},"freeRules":[],"tests":[],"margin":{"pricingGroup":"","notes":""},"notes":"","pjm":{"engineId":"","url":""},"createdAt":"ISO","updatedAt":"ISO","schema":1}
+{"name":"","productType":"autre","status":"import","pjmCategory":"","description":"","language":"fr","priceMin":"","priceMax":"","quantityComponent":"Q1","multiQty":false,"components":[],"delays":{"enabled":false,"name":"Délais de production","userText":"","choices":[],"notes":""},"restrictions":[],"rulesNotes":"","guided":{},"freeRules":[],"tests":[],"margin":{"pricingGroup":"","notes":""},"notes":"","pjm":{"engineId":"","url":""},"createdAt":"ISO","updatedAt":"ISO","schema":1}
 ```
 Composants : quantity {id,type,code,name,userText,unit,min,max,def,hideWhen[]} ; option {id,type,name,userText,forceSelect,hidePublic,options:[{id,name,adjust,steps:[{id,resource,process,basis,formula,note}],materials:[]}],hideWhen[]} ; material {id,type,name,userText,hidePublic,mode,category,materials[],sheetFormats[{w,h}],bleed,sides,imposition,hideWhen[]} ; calculation {id,type,name,userText,steps[],hideWhen[]}. hideWhen = [{component: id local, value: nom du choix}].

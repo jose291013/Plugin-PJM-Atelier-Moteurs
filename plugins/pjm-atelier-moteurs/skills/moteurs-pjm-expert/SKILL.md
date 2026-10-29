@@ -37,6 +37,7 @@ Answer in the user's language (French, Spanish or English).
 
 ## Rules when writing formulas
 - Always put spaces around `<` and `<=` (the PJM server rejects `<Nup()` as HTML).
+- `CalcNup()` returns a Decimal: `Q1 / CalcNup(...)` or `Max(CalcNup(...), 1E-4)` fails (ErrorCode 448, « double and decimal »). Wrap it: `floor(CalcNup(...))`.
 - Never mix a decimal literal with Ceiling/floor/Sqrt results: `Ceiling(…)*0.9` fails silently (Decimal × Double: production = 1, material missing). Write non-integers in scientific notation: `9E-1`, `45E-1`, `1E6`, `198E-6`.
 - Check a non-trivial formula with `reprendre-excel-pjm/scripts/ncalc_sim.py` (Python evaluator + static checks) on many cases.
 - Guard divisions: `Max(CalcNup(...), 0.0001)` when a format may not fit.
@@ -48,5 +49,6 @@ Answer in the user's language (French, Spanish or English).
 - `references/ncalc.md`: NCalc syntax summary.
 - `references/consommation.md`: usage rules (one task per conversation, estimate before starting, measured values).
 - `references/scripts-pjm.md`: verified JavaScript helpers (choices, production and material lines, suppressions, reading an engine, tests, creating resources / processes / materials, attributes).
+- `references/panneau-rigide.md`: rigid boards (productType `panneau`): form, cheapest board sheet per material/thickness, `floor(CalcNup())`, production formulas in mm.
 - `references/attributs.md`: attributes returned to Pressero, limits, endpoints, `SHIP_DAYS`, technical quantity S1 for the cut-off hour.
 - Skill `reprendre-excel-pjm`: rebuild an Excel / Pressero calculator in PJM.
